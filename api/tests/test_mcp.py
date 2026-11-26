@@ -30,20 +30,22 @@ async def test_server_identifies_itself() -> None:
 
 
 def test_http_initialize_from_localhost() -> None:
-    with TestClient(create_app(), base_url="http://localhost") as client:
+    with TestClient(create_app(Settings(database_url=None)), base_url="http://localhost") as client:
         response = client.post("/mcp", json=INITIALIZE, headers=HEADERS)
     assert response.status_code == 200
     assert response.json()["result"]["serverInfo"]["name"] == "paperboard"
 
 
 def test_http_accepts_configured_public_host() -> None:
-    app = create_app(Settings(public_hosts=["paperboard.example"]))
+    app = create_app(Settings(public_hosts=["paperboard.example"], database_url=None))
     with TestClient(app, base_url="https://paperboard.example") as client:
         response = client.post("/mcp", json=INITIALIZE, headers=HEADERS)
     assert response.status_code == 200
 
 
 def test_http_rejects_unknown_host() -> None:
-    with TestClient(create_app(), base_url="http://evil.example") as client:
+    with TestClient(
+        create_app(Settings(database_url=None)), base_url="http://evil.example"
+    ) as client:
         response = client.post("/mcp", json=INITIALIZE, headers=HEADERS)
     assert response.status_code == 421

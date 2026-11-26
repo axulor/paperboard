@@ -4,13 +4,16 @@ version = "0.1.0"
 description = "PaperBoard API, MCP connector and background worker"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.14,<2",
     "fastapi>=0.165.0",
     "httpx2>=2.16.2",
     "mcp>=2.3.0",
+    "psycopg[binary]>=3.2,<4",
     "pydantic-settings>=2.16.3",
     "pypdfium2>=5.15.2",
     "rapidfuzz>=3.14.6",
     "selectolax>=1.0.2",
+    "sqlalchemy[asyncio]>=2.0,<3",
     "uvicorn[standard]>=0.54.0",
 ]
 

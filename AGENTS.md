@@ -47,10 +47,17 @@
 
 本地启动 api 后，Claude Code 通过仓库根目录的 `.mcp.json` 连接 `http://127.0.0.1:8000/mcp`，可以直接试连接器的工具。
 
+本地数据库按下表从仓库根目录启动。将 `api/.env.example` 复制到 `api/.env`，或设置 `PAPERBOARD_DATABASE_URL`，API 启动时会检查数据库连接。
+
 | 目录 | 安装依赖 | 启动 | 测试 | 格式和检查 |
 |---|---|---|---|---|
+| 仓库根目录 | Docker Compose | `docker compose -f deploy/docker-compose.yml up -d --wait db` | — | — |
 | `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest`；带覆盖率（CI 要求不低于 90%）：`uv run pytest --cov`；访问真实接口的测试：`uv run pytest -m live` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
 | `web/` | `pnpm install` | `pnpm dev`（http://localhost:3000） | — | `pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm build` |
+
+在 `api/` 运行 `uv run alembic upgrade head` 应用迁移。更新模型后用 `uv run alembic revision --autogenerate -m "change description"` 生成迁移草稿，再检查升级和回退操作。
+
+论文缓存的集成测试使用独立的 PostgreSQL 测试库。用测试库的连接串设置 `PAPERBOARD_DATABASE_URL` 并跑迁移，再把同一连接串设为 `PAPERBOARD_TEST_DATABASE_URL`，运行 `uv run pytest tests/test_paper_cache.py`。每个测试结束后回滚。CI 在临时测试库中验证迁移可以升级、回退和重新升级，再运行所有后端测试。
 
 ## 代码规范
 
