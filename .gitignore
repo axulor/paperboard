@@ -1,0 +1,47 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+.pnpm-store/
+
+# Tests
+playwright-report/
+test-results/
+coverage/
+
+# Local data
+deploy/data/
+*.log
+
+# Posters (kept locally, not tracked)
+海报/
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
