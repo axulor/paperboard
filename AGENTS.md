@@ -47,15 +47,15 @@
 
 | 目录 | 安装依赖 | 启动 | 测试 | 格式和检查 |
 |---|---|---|---|---|
-| `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest`；访问真实接口的测试：`uv run pytest -m live` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
+| `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest`；带覆盖率（CI 要求不低于 90%）：`uv run pytest --cov`；访问真实接口的测试：`uv run pytest -m live` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
 | `web/` | `pnpm install` | `pnpm dev`（http://localhost:3000） | — | `pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm build` |
 
 ## 代码规范
 
-- **Python**：类型注解写全；ruff 格式化和检查，pyright 不报错。对外的输入输出都用 Pydantic 模型。网络请求用 httpx 的异步客户端。
+- **Python**：类型注解写全；ruff 格式化和检查，pyright strict 不报错。对外的输入输出都用 Pydantic 模型。网络请求用 httpx2 的异步客户端，XML 用标准库 `xml.etree` 解析。
 - **TypeScript**：开 strict；ESLint、Prettier。后端接口的类型从 OpenAPI 生成，生成的文件不手改。
 - **REST 和 MCP 共用 `api/app/core/` 里的业务逻辑。** 路由层和工具层只做参数转换，不写业务。
-- **测试**：pytest；外部接口用 respx 模拟。要访问真实网络的测试标 `@pytest.mark.live`，默认不跑。
+- **测试**：pytest；外部接口用 `tests/http_mock.py`（httpx2 的模拟传输层）代替。要访问真实网络的测试标 `@pytest.mark.live`，默认不跑。
 - **语言**：代码、标识符、注释、提交信息用英文；文档和面向用户的文字用中文。
 - **提交信息**用 Conventional Commits：`feat:`、`fix:`、`docs:`、`test:`、`refactor:`、`chore:`。
 

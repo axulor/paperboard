@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,7 +15,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     mcp_app = build_mcp_app(mcp_server, settings.public_hosts)
 
     @asynccontextmanager
-    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
         # A mounted sub-app's lifespan is not run by FastAPI, so the MCP session manager is
         # started here.
         async with mcp_server.session_manager.run():

@@ -15,10 +15,10 @@ from email.utils import parsedate_to_datetime
 from itertools import batched
 from types import TracebackType
 from typing import Literal, Self
+from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, ParseError
 
-import httpx
-from defusedxml import ElementTree
+import httpx2
 
 from app import VERSION
 from app.sources.base import (
@@ -84,7 +84,7 @@ class RawFullText:
 @dataclass(frozen=True)
 class _Fetched:
     status_code: int
-    headers: httpx.Headers
+    headers: httpx2.Headers
     content: bytes
 
     @property
@@ -219,7 +219,7 @@ def parse_feed(xml: str) -> SearchResult:
 MAX_RETRY_AFTER_SECONDS = 30.0
 
 
-def _retry_after_seconds(headers: Mapping[str, str]) -> float:
+def retry_after_seconds(headers: Mapping[str, str]) -> float:
     """Seconds asked for in Retry-After, capped so one request never stalls for long."""
     try:
         seconds = float(headers.get("Retry-After", "0"))
@@ -299,16 +299,19 @@ class ArxivAdapter:
         retry_backoff: float = MIN_INTERVAL_SECONDS,
         max_response_bytes: int = MAX_RESPONSE_BYTES,
         limiter: RateLimiter | None = None,
-        client: httpx.AsyncClient | None = None,
+        transport: httpx2.AsyncBaseTransport | None = None,
     ) -> None:
+        """`transport` replaces the network, e.g. with httpx2.MockTransport in tests."""
         self._base_url = base_url
         self._limiter = limiter or RateLimiter(min_interval)
         self._max_attempts = max_attempts
         self._retry_backoff = retry_backoff
         self._max_response_bytes = max_response_bytes
-        self._owns_client = client is None
-        self._client = client or httpx.AsyncClient(
-            timeout=timeout, headers={"User-Agent": USER_AGENT}, follow_redirects=True
+        self._client = httpx2.AsyncClient(
+            timeout=timeout,
+            headers={"User-Agent": USER_AGENT},
+            follow_redirects=True,
+            transport=transport,
         )
 
     async def __aenter__(self) -> Self:
@@ -323,8 +326,7 @@ class ArxivAdapter:
         await self.aclose()
 
     async def aclose(self) -> None:
-        if self._owns_client:
-            await self._client.aclose()
+        await self._client.aclose()
 
     async def search(self, query: SearchQuery) -> SearchResult:
         params = {
@@ -460,14 +462,14 @@ class ArxivAdapter:
             try:
                 async with self._limiter.slot():
                     fetched = await self._read(url, params, self._max_response_bytes)
-            except httpx.TransportError as exc:
+            except httpx2.TransportError as exc:
                 last_error = exc
                 delay = max(delay * 2, self._retry_backoff)
                 continue
 
             if fetched.status_code == 429 or fetched.status_code >= 500:
                 last_error = SourceUnavailable(f"arXiv answered HTTP {fetched.status_code}")
-                delay = max(delay * 2, self._retry_backoff, _retry_after_seconds(fetched.headers))
+                delay = max(delay * 2, self._retry_backoff, retry_after_seconds(fetched.headers))
                 continue
             return fetched
 

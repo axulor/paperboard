@@ -5,19 +5,31 @@ a quote matches whether or not the agent copied the markers. Nothing here is sto
 """
 
 import hashlib
+import multiprocessing
 import re
+import sys
 import threading
 import unicodedata
 from collections.abc import Callable
 from enum import StrEnum
-from typing import Literal
+from multiprocessing.connection import Connection
+from typing import Any, Literal
 
-import pypdfium2 as pdfium
+import pypdfium2 as pdfium  # pyright: ignore[reportMissingTypeStubs]
 from pydantic import BaseModel
 from selectolax.lexbor import LexborHTMLParser, LexborNode
 
 from app.sources.arxiv import RawFullText
+from app.sources.base import SourceError
 from app.sources.codelinks import CodeLink, extract_code_links
+
+PDF_PARSE_TIMEOUT_SECONDS = 60.0
+PDF_PARSE_MEMORY_BYTES = 1536 * 1024 * 1024
+"""Address-space limit for the PDF parsing process (enforced on Linux and macOS)."""
+
+
+class FullTextError(SourceError):
+    """The full text could not be read."""
 
 
 class PassageKind(StrEnum):
@@ -105,7 +117,14 @@ def parse_fulltext(raw: RawFullText) -> FullText:
     if raw.format == "html":
         passages, links = parse_arxiv_html(raw.content, raw.url)
     else:
-        passages, links = parse_pdf(raw.content, raw.url), []
+        passages = run_isolated(
+            parse_pdf,
+            raw.content,
+            raw.url,
+            timeout=PDF_PARSE_TIMEOUT_SECONDS,
+            memory_limit=PDF_PARSE_MEMORY_BYTES,
+        )
+        links = []
     return FullText(
         links=links,
         source="arxiv",
@@ -285,6 +304,62 @@ def parse_arxiv_html(content: bytes, url: str) -> tuple[list[Passage], list[str]
 # --- PDF ---------------------------------------------------------------------------------------
 
 _PDFIUM_LOCK = threading.Lock()  # pdfium is not thread-safe
+
+
+def _isolated_child(
+    sender: Connection, func: Callable[..., Any], args: tuple[Any, ...], memory_limit: int
+) -> None:
+    try:
+        if memory_limit and sys.platform != "win32":
+            import resource
+
+            resource.setrlimit(resource.RLIMIT_AS, (memory_limit, memory_limit))
+        sender.send(("ok", func(*args)))
+    except BaseException as exc:  # report everything, MemoryError included
+        sender.send(("error", f"{type(exc).__name__}: {exc}"))
+    finally:
+        sender.close()
+
+
+def run_isolated[T](func: Callable[..., T], *args: Any, timeout: float, memory_limit: int) -> T:
+    """Run `func(*args)` in a fresh process, with a time limit and (outside Windows) a
+    memory limit.
+
+    PDF parsing runs C++ code on files from strangers: a crafted PDF can crash it, hang it or
+    make it eat memory. In a separate process that only fails this one document.
+    `func` must be importable at module level, and its arguments and result picklable.
+    """
+    context = multiprocessing.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    process = context.Process(
+        target=_isolated_child, args=(sender, func, args, memory_limit), daemon=True
+    )
+    process.start()
+    sender.close()
+    outcome: tuple[str, Any] | None = None
+    timed_out = False
+    try:
+        if receiver.poll(timeout):
+            outcome = receiver.recv()
+        else:
+            timed_out = True
+    except EOFError:
+        outcome = None
+    finally:
+        receiver.close()
+        process.join(timeout=1)
+        if process.is_alive():
+            process.kill()
+            process.join()
+
+    if timed_out:
+        raise FullTextError(f"parsing took longer than {timeout:g} seconds")
+    if outcome is None:
+        raise FullTextError(f"the parser stopped unexpectedly (exit code {process.exitcode})")
+    status, payload = outcome
+    if status != "ok":
+        raise FullTextError(f"could not parse the document: {payload}")
+    return payload
 
 
 def parse_pdf(content: bytes, url: str) -> list[Passage]:
