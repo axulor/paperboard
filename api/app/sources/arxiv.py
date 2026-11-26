@@ -178,11 +178,16 @@ def parse_feed(xml: str) -> SearchResult:
     )
 
 
+MAX_RETRY_AFTER_SECONDS = 30.0
+
+
 def _retry_after_seconds(response: httpx.Response) -> float:
+    """Seconds asked for in Retry-After, capped so one request never stalls for long."""
     try:
-        return float(response.headers.get("Retry-After", "0"))
+        seconds = float(response.headers.get("Retry-After", "0"))
     except ValueError:
         return 0.0
+    return min(max(seconds, 0.0), MAX_RETRY_AFTER_SECONDS)
 
 
 class ArxivAdapter:
