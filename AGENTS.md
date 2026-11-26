@@ -47,7 +47,7 @@
 
 | 目录 | 安装依赖 | 启动 | 测试 | 格式和检查 |
 |---|---|---|---|---|
-| `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
+| `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest`；访问真实接口的测试：`uv run pytest -m live` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
 | `web/` | `pnpm install` | `pnpm dev`（http://localhost:3000） | — | `pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm build` |
 
 ## 代码规范

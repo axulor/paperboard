@@ -38,7 +38,7 @@ deploy/data/
 海报/
 
 # Claude Code personal settings
-.claude/settings.local.json
+.claude/*.local.json
 
 # Editors and OS
 .idea/
