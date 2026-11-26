@@ -1,0 +1,60 @@
+diff --git a/.claude-plugin/marketplace.json b/.claude-plugin/marketplace.json
+new file mode 100644
+--- /dev/null
++++ b/.claude-plugin/marketplace.json
+@@ -0,0 +1,13 @@
++{
++  "name": "paperboard",
++  "owner": {
++    "name": "PaperBoard contributors"
++  },
++  "plugins": [
++    {
++      "name": "paperboard",
++      "source": "./skill/claude-code",
++      "description": "通过 PaperBoard 做有出处的文献调研。"
++    }
++  ]
++}
+diff --git a/AGENTS.md b/AGENTS.md
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -54,6 +54,7 @@
+ | 仓库根目录 | Docker Compose | `docker compose -f deploy/docker-compose.yml up -d --wait db` | — | — |
+ | `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest`；带覆盖率（CI 要求不低于 90%）：`uv run pytest --cov`；访问真实接口的测试：`uv run pytest -m live` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
+ | `web/` | `pnpm install` | `pnpm dev`（http://localhost:3000） | — | `pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm build` |
++| `skill/` | Python 3.9+ 标准库；真实实测需要客户端和本地 API | `claude --plugin-dir ./skill/claude-code`（仓库根目录） | `python3 skill/scripts/run_evals.py --pilot`；`python3 -m unittest discover -s skill/tests -v` | `python3 skill/scripts/check_requests.py`、`python3 skill/scripts/check_package.py`、`claude plugin validate .` |
+
+ 在 `api/` 运行 `uv run alembic upgrade head` 应用迁移。更新模型后用 `uv run alembic revision --autogenerate -m "change description"` 生成迁移草稿，再检查升级和回退操作。
+
+diff --git a/reports/技术栈.md b/reports/技术栈.md
+--- a/reports/技术栈.md
++++ b/reports/技术栈.md
+@@ -169,6 +169,8 @@
+ - **打包**：正文只写一份，按 Claude Code 插件（技能和连接器地址一起装）、Codex、WorkBuddy、DeepSeek Harness 的格式各打一个包。
+ - **测试请求集**（`skill/evals/`）：5.1 表里每类中英文各 10 条，再加 20 条不该触发的。每家客户端都跑：该触发的触发了没有，调了哪些工具、调了几次，简报里的出处能不能打开。
+ - 改技能描述或工具说明后，都要重跑这套。
++
++技能正文的唯一源在 `skill/claude-code/skills/paperboard/`，Claude Code 插件自包含，Codex 用符号链接引用同一目录。安装和测试命令见 `skill/README.md`。第一阶段插件只配置免登录本地端点；登录连接单独按实际接口配置。根目录 `.claude-plugin/marketplace.json` 的插件源是 `./skill/claude-code`。CI 只检查请求集的格式与条数；真实模型测试在本地单独运行，先确认插件、连接器和技能调用事件，再统计触发率。只有论文编号或链接的请求先 `check_paper` 识别标题，再查 `search_topic`；其余题目型请求先 `search_topic`。
+
+ ## 6. 仓库
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -13,6 +13,15 @@
+   cancel-in-progress: true
+
+ jobs:
++  skill-requests:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v7
++      - uses: actions/setup-python@v6
++        with:
++          python-version: "3.12"
++      - run: python3 skill/scripts/check_requests.py
++
+   api:
+     runs-on: ubuntu-latest
+     services:

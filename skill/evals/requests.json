@@ -1,0 +1,1442 @@
+[
+  {
+    "id": "01-zh-01",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "帮我找找耦合振子同步的文献。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-02",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "列几篇关于钙钛矿太阳能电池稳定性的论文。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-03",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "找一下用图神经网络预测分子性质的研究，附代码链接。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-04",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "给我整理关于城市热岛遥感观测的相关论文列表。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-05",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "检索一下拓扑绝缘体边缘态的文献。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-06",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "帮我找量子纠错的入门研究论文，不用逐篇精读。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-07",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "收集几篇黑洞阴影观测的论文和数据链接。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-08",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "找找蛋白质折叠动力学的相关预印本。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-09",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "列出交通流拥堵相变的代表性研究。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-zh-10",
+    "language": "zh",
+    "category": "找文献",
+    "prompt": "帮我搜一下生态网络稳定性的文献，注明有没有公开代码。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-01",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Find papers on synchronization in coupled oscillators.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-02",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "List literature on gravitational-wave parameter estimation.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-03",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Find studies of drought detection using satellite images.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-04",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Collect papers and code links on graph neural networks for molecules.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-05",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Look up literature on mathematical models of epidemics.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-06",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Give me a reading list on quantum error correction without deep reading.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-07",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Find papers about turbulence closure models.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-08",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Locate research on battery electrolyte transport.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-09",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Gather literature on the stability of food webs.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "01-en-10",
+    "language": "en",
+    "category": "找文献",
+    "prompt": "Find papers on causal inference with instrumental variables.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-01",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "有人研究过延迟耦合对同步阈值的影响吗？",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-02",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "查查用扩散模型做天气降尺度有没有已有研究。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-03",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "量子行走用于图分类有人做过吗？",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-04",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "看看是否有研究把交通网络和渗流理论联系起来。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-05",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "帮我查一下脉冲神经网络的能耗下界有没有人讨论。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-06",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "找找有没有用拓扑数据分析研究蛋白质构象的工作。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-07",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "确定一下非互易耦合引起的集体振荡是否已有论文。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-08",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "有人把最优输运用于天文图像配准吗？",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-09",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "查查随机微分方程的神经算子有没有现成研究。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-zh-10",
+    "language": "zh",
+    "category": "查有没有",
+    "prompt": "土壤湿度的卫星反演不确定性有人系统研究过吗？",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-01",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Has anyone studied delay-induced synchronization in oscillator networks?",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-02",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Check whether diffusion models have been used for climate downscaling.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-03",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Look for prior work on quantum walks for graph classification.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-04",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Has percolation theory been applied to urban traffic networks?",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-05",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Check if energy lower bounds for spiking neural networks have been studied.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-06",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Has topological data analysis been used for protein conformations?",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-07",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Look for existing research on collective oscillations from nonreciprocal coupling.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-08",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Find out whether optimal transport has been used for astronomical image registration.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-09",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Have neural operators for stochastic differential equations been studied?",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "02-en-10",
+    "language": "en",
+    "category": "查有没有",
+    "prompt": "Is there prior work quantifying uncertainty in satellite soil-moisture retrieval?",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "03-zh-01",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "找一下量子计算最近有什么新论文。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-02",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "给我看看耦合振子神经网络的最新进展。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-03",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "检索最近的引力波探测论文，按时间列。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-04",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "整理一下钠离子电池的近期研究。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-05",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "看看气候极端事件归因有什么新进展。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-06",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "找最新的拓扑光子学论文。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-07",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "列一下最近蛋白质设计领域的新论文。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-08",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "更新一下我对湍流建模研究进展的了解。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-09",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "查查生态网络韧性近期有哪些新工作。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-zh-10",
+    "language": "zh",
+    "category": "看最新",
+    "prompt": "给我看看医学图像重建最新的研究论文。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-01",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Find the latest papers on quantum computing.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-02",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Show recent progress on coupled-oscillator neural networks.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-03",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "List the newest gravitational-wave detection papers by date.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-04",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Find recent studies on sodium-ion batteries.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-05",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "What is new in extreme-event attribution research?",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-06",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Get the latest papers on topological photonics.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-07",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Show me recent research on protein design.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-08",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Bring me up to date on turbulence modeling papers.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-09",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Look up the newest work on ecological network resilience.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "03-en-10",
+    "language": "en",
+    "category": "看最新",
+    "prompt": "Find recent papers on medical image reconstruction.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": true,
+      "state_date_range": true
+    }
+  },
+  {
+    "id": "04-zh-01",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "帮我调研非互易振子网络的同步机制。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-02",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "围绕图神经网络的可解释性做一次文献调研。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-03",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "系统梳理量子误差缓解方法并比较证据。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-04",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "帮我调研城市洪水预测的研究路线和不足。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-05",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "做一份关于蛋白质语言模型的文献简报。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-06",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "调研黑洞信息悖论的几条主要研究思路。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-07",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "帮我比较湍流闭合模型，基于论文说明局限。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-08",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "系统查一下锂金属电池枝晶抑制的研究。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-09",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "围绕生态系统临界转变写一份有出处的调研简报。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-zh-10",
+    "language": "zh",
+    "category": "调研",
+    "prompt": "调研联邦学习在医学影像中的应用和证据缺口。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-01",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Survey synchronization mechanisms in nonreciprocal oscillator networks.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-02",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Conduct a literature review of graph neural network interpretability.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-03",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Survey quantum error mitigation methods and compare the evidence.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-04",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Research approaches and limitations in urban flood prediction.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-05",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Prepare a source-grounded literature briefing on protein language models.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-06",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Survey the main research directions on the black hole information paradox.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-07",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Compare turbulence closure models using published evidence.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-08",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Investigate the literature on suppressing dendrites in lithium-metal batteries.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-09",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Prepare a research briefing on critical transitions in ecosystems.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "04-en-10",
+    "language": "en",
+    "category": "调研",
+    "prompt": "Survey federated learning for medical imaging and identify evidence gaps.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "search_topic",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-01",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "查一下 arXiv:1706.03762 有没有代码，能证明跑得通吗？",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-02",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "帮我核对 https://arxiv.org/abs/2303.08774 的版本和公开记录。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-03",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "看看 arXiv:1512.03385 的代码链接和已有核对记录。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-04",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "查查 https://arxiv.org/abs/1609.02907 的结论有没有证据支持。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-05",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "帮我看 arXiv:1406.2661 有没有撤回或版本变化。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-06",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "核查 https://arxiv.org/abs/1412.6980 的事实和代码信息。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-07",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "arXiv:1806.07366 这篇的方法可靠吗？先看平台记录。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-08",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "查看 https://arxiv.org/abs/2006.11239 的代码是否有人验证过。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-09",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "查一下 arXiv:1602.03837 的论文版本和相关留言。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-zh-10",
+    "language": "zh",
+    "category": "查一篇",
+    "prompt": "看看 https://arxiv.org/abs/2001.08361 有哪些公开代码或模型链接。",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-01",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Check whether arXiv:1706.03762 has code and evidence that it runs.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-02",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Check the versions and public records for https://arxiv.org/abs/2303.08774.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-03",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Look up the code links and existing notes for arXiv:1512.03385.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-04",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Check what evidence supports the conclusions of https://arxiv.org/abs/1609.02907.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-05",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Check whether arXiv:1406.2661 has been withdrawn or revised.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-06",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Verify the facts and code information for https://arxiv.org/abs/1412.6980.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-07",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Is the method in arXiv:1806.07366 reliable? Start with the platform records.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-08",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Has anyone verified the code for https://arxiv.org/abs/2006.11239?",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-09",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Look up the paper versions and notes for arXiv:1602.03837.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "05-en-10",
+    "language": "en",
+    "category": "查一篇",
+    "prompt": "Check https://arxiv.org/abs/2001.08361 for public code and model links.",
+    "expected": {
+      "trigger": true,
+      "first_tool": "check_paper",
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-01",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "把这段摘要翻译成英文：我们研究了网络中的同步现象。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-02",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "把参考文献改成 APA 格式：Einstein, A. (1905). Zur Elektrodynamik bewegter Körper.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-03",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "润色这句话：本文的方法得到了比较好的结果。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-04",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "写一个 Python 函数计算两个向量的余弦相似度。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-05",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "把论文标题改短一点：基于图神经网络的复杂系统动力学预测方法研究。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-06",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "帮我修这个 LaTeX 公式的括号：\\frac{a+b}{c。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-07",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "把这句参考文献里的全角标点换成半角：张三，网络科学，2020。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-08",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "将这段方法描述压缩到一句话：我们先采样，接着训练，最后测试。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-09",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "把这个表头翻译成中文：Method, Accuracy, Runtime。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-zh-10",
+    "language": "zh",
+    "category": "不触发",
+    "prompt": "解释一下 Python 的列表推导式。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-01",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Translate this abstract into Chinese: We study synchronization in networks.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-02",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Format this reference in APA style: Einstein, A., 1905, Zur Elektrodynamik bewegter Körper.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-03",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Polish this sentence: Our method gets pretty good results.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-04",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Write a Python function that computes cosine similarity.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-05",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Shorten this title: A Study of Graph Neural Networks for Predicting Complex System Dynamics.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-06",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Fix the missing brace in this LaTeX expression: \\frac{a+b}{c.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-07",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Replace full-width punctuation in this reference: Smith，Network Science，2020。",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-08",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Condense this methods description: We sample the data, train the model, and test it.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-09",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Translate the table headings into Chinese: Method, Accuracy, Runtime.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  },
+  {
+    "id": "06-en-10",
+    "language": "en",
+    "category": "不触发",
+    "prompt": "Explain Python list comprehensions.",
+    "expected": {
+      "trigger": false,
+      "first_tool": null,
+      "recent_sort": false,
+      "state_date_range": false
+    }
+  }
+]
