@@ -6,6 +6,7 @@ from app import VERSION
 from app.config import Settings
 from app.main import create_app
 from app.mcp.server import build_mcp_server
+from app.sources import ArxivAdapter
 
 HEADERS = {"Accept": "application/json, text/event-stream", "Content-Type": "application/json"}
 INITIALIZE = {
@@ -22,7 +23,7 @@ INITIALIZE = {
 
 @pytest.mark.anyio
 async def test_server_identifies_itself() -> None:
-    async with Client(build_mcp_server()) as client:
+    async with ArxivAdapter() as arxiv, Client(build_mcp_server(arxiv)) as client:
         assert client.server_info is not None
         assert client.server_info.name == "paperboard"
         assert client.server_info.version == VERSION

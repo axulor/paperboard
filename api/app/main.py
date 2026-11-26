@@ -7,18 +7,24 @@ from app import VERSION
 from app.config import Settings
 from app.mcp.server import build_mcp_app, build_mcp_server
 from app.rest import health
+from app.sources import ArxivAdapter
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, arxiv: ArxivAdapter | None = None) -> FastAPI:
+    """The whole service. `arxiv` replaces the real arXiv adapter, e.g. in tests.
+
+    One ArxivAdapter serves the process, so every request shares its rate limit.
+    """
     settings = settings or Settings()
-    mcp_server = build_mcp_server()
+    arxiv = arxiv or ArxivAdapter()
+    mcp_server = build_mcp_server(arxiv)
     mcp_app = build_mcp_app(mcp_server, settings.public_hosts)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
         # A mounted sub-app's lifespan is not run by FastAPI, so the MCP session manager is
         # started here.
-        async with mcp_server.session_manager.run():
+        async with arxiv, mcp_server.session_manager.run():
             yield
 
     app = FastAPI(title="PaperBoard API", version=VERSION, lifespan=lifespan)
