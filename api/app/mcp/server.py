@@ -6,6 +6,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp_types import ToolAnnotations
 from pydantic import Field
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.applications import Starlette
 
 from app import VERSION
@@ -33,7 +34,9 @@ available. 查一篇论文的事实：版本、是否撤回、许可证、作者
 Accepts an arXiv id (2401.12345, 2401.12345v2, arXiv:2401.12345) or an arxiv.org link."""
 
 
-def build_mcp_server(arxiv: ArxivAdapter) -> MCPServer:
+def build_mcp_server(
+    arxiv: ArxivAdapter, *, sessions: async_sessionmaker[AsyncSession] | None = None
+) -> MCPServer:
     """The PaperBoard connector."""
     server = MCPServer(name="paperboard", title="PaperBoard", version=VERSION)
 
@@ -82,7 +85,7 @@ def build_mcp_server(arxiv: ArxivAdapter) -> MCPServer:
         paper: Annotated[str, Field(description="arXiv id or arxiv.org link", min_length=1)],
     ) -> str:
         try:
-            report = await check_paper(arxiv, paper)
+            report = await check_paper(arxiv, paper, sessions=sessions)
         except SourceError as exc:
             raise ToolError(str(exc)) from exc
         if report is None:

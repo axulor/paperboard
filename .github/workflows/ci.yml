@@ -15,6 +15,20 @@ concurrency:
 jobs:
   api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: paperboard_test
+          POSTGRES_USER: paperboard
+          POSTGRES_PASSWORD: paperboard
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U paperboard -d paperboard_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     defaults:
       run:
         working-directory: api
@@ -29,7 +43,18 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run pyright
-      - run: uv run pytest --cov
+      - name: Verify database migrations
+        env:
+          PAPERBOARD_DATABASE_URL: postgresql+psycopg://paperboard:paperboard@127.0.0.1:${{ job.services.postgres.ports['5432'] }}/paperboard_test
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+          uv run alembic check
+      - name: Run API tests
+        env:
+          PAPERBOARD_TEST_DATABASE_URL: postgresql+psycopg://paperboard:paperboard@127.0.0.1:${{ job.services.postgres.ports['5432'] }}/paperboard_test
+        run: uv run pytest --cov
 
   web:
     runs-on: ubuntu-latest
