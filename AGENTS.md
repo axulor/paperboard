@@ -45,6 +45,8 @@
 
 新建目录的人，在同一个 PR 里把这个目录的命令补进下表。
 
+本地启动 api 后，Claude Code 通过仓库根目录的 `.mcp.json` 连接 `http://127.0.0.1:8000/mcp`，可以直接试连接器的工具。
+
 | 目录 | 安装依赖 | 启动 | 测试 | 格式和检查 |
 |---|---|---|---|---|
 | `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest`；带覆盖率（CI 要求不低于 90%）：`uv run pytest --cov`；访问真实接口的测试：`uv run pytest -m live` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
