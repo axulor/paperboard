@@ -11,6 +11,7 @@
 | `项目说明书.md` | 第一次进仓库 |
 | `reports/技术栈.md` | 写代码之前：选型、连接器工具、登录、引文核对、分工 |
 | `reports/平台大框架.md` | 做和产品有关的决定时 |
+| `web/AGENTS.md` | 改 `web/` 之前。Next.js 16 的接口和训练数据里的不同，按它的要求先读 `web/node_modules/next/dist/docs/` |
 
 ## 不能违反的规则
 
@@ -40,12 +41,14 @@
 
 ## 命令
 
-工具链：Python 3.12 + uv，Node.js LTS + pnpm，Docker。
+工具链：Python 3.12 + uv，Node.js 24 + pnpm，Docker。命令都在对应的目录里执行。
 
 新建目录的人，在同一个 PR 里把这个目录的命令补进下表。
 
 | 目录 | 安装依赖 | 启动 | 测试 | 格式和检查 |
 |---|---|---|---|---|
+| `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
+| `web/` | `pnpm install` | `pnpm dev`（http://localhost:3000） | — | `pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm build` |
 
 ## 代码规范
 
