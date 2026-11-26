@@ -11,6 +11,7 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, datetime
+from email.utils import parsedate_to_datetime
 from itertools import batched
 from types import TracebackType
 from typing import Literal, Self
@@ -21,6 +22,7 @@ from defusedxml import ElementTree
 
 from app import VERSION
 from app.sources.base import (
+    PaperFacts,
     PaperRecord,
     SearchQuery,
     SearchResult,
@@ -28,10 +30,13 @@ from app.sources.base import (
     SourceError,
     SourceQueryError,
     SourceUnavailable,
+    VersionInfo,
 )
+from app.sources.codelinks import extract_code_links
 from app.sources.ratelimit import RateLimiter
 
 API_URL = "https://export.arxiv.org/api/query"
+OAI_URL = "https://oaipmh.arxiv.org/oai"
 USER_AGENT = f"PaperBoard/{VERSION} (+https://github.com/axulor/paperboard)"
 MIN_INTERVAL_SECONDS = 3.0
 MAX_IDS_PER_REQUEST = 100
@@ -52,6 +57,13 @@ _ID_RE = re.compile(
 )
 _URL_PREFIX = re.compile(r"^https?://(?:www\.|export\.)?arxiv\.org/(?:abs|pdf|html)/", re.I)
 _ARXIV_PREFIX = re.compile(r"^arxiv:", re.I)
+
+_OAI_NS = {"oai": "http://www.openarchives.org/OAI/2.0/", "raw": "http://arxiv.org/OAI/arXivRaw/"}
+_WITHDRAWN = re.compile(
+    r"\b(?:has been|was|is being|is) withdrawn\b|\bwithdrawn (?:by|due|because)\b", re.I
+)
+_SIZE_KB = re.compile(r"^\s*(\d+)\s*kb\s*$", re.I)
+_CC_LICENSE = re.compile(r"creativecommons\.org/licenses/([a-z-]+)/(\d\.\d)", re.I)
 
 _TOKEN_RE = re.compile(r'"([^"]+)"|(\S+)')
 _UNSAFE_CHARS = re.compile(r"[^\w.+-]")
@@ -216,6 +228,64 @@ def _retry_after_seconds(headers: Mapping[str, str]) -> float:
     return min(max(seconds, 0.0), MAX_RETRY_AFTER_SECONDS)
 
 
+def license_name(url: str | None) -> str | None:
+    """Short name for an arXiv license URL."""
+    if not url:
+        return None
+    if match := _CC_LICENSE.search(url):
+        return f"CC {match.group(1).upper()} {match.group(2)}"
+    if "publicdomain/zero" in url:
+        return "CC0 1.0"
+    if "nonexclusive-distrib" in url:
+        return "arXiv non-exclusive license"
+    if "assumed-1991-2003" in url:
+        return "arXiv assumed license (1991-2003)"
+    return url
+
+
+@dataclass(frozen=True)
+class _OaiRecord:
+    versions: list[VersionInfo]
+    license_url: str | None
+    comments: str | None
+
+
+def parse_oai_record(xml: str) -> _OaiRecord | None:
+    """An arXivRaw record from OAI-PMH, or None if arXiv has no record of that id."""
+    try:
+        root = ElementTree.fromstring(xml)
+    except ParseError as exc:
+        raise SourceError("arXiv OAI returned a response that is not valid XML") from exc
+    error = root.find("oai:error", _OAI_NS)
+    if error is not None:
+        if error.get("code") == "idDoesNotExist":
+            return None
+        raise SourceError(f"arXiv OAI error {error.get('code')}: {(error.text or '').strip()}")
+    raw = root.find(".//raw:arXivRaw", _OAI_NS)
+    if raw is None:
+        raise SourceError("arXiv OAI response has no arXivRaw record")
+    versions: list[VersionInfo] = []
+    for element in raw.findall("raw:version", _OAI_NS):
+        label = element.get("version") or ""
+        date = element.findtext("raw:date", None, _OAI_NS)
+        if not re.fullmatch(r"v\d+", label) or not date:
+            continue
+        size = _SIZE_KB.match(element.findtext("raw:size", "", _OAI_NS))
+        versions.append(
+            VersionInfo(
+                version=int(label[1:]),
+                submitted=parsedate_to_datetime(date.strip()),
+                size_kb=int(size.group(1)) if size else None,
+            )
+        )
+    comments = raw.findtext("raw:comments", None, _OAI_NS)
+    return _OaiRecord(
+        versions=sorted(versions, key=lambda v: v.version),
+        license_url=(raw.findtext("raw:license", None, _OAI_NS) or "").strip() or None,
+        comments=" ".join(comments.split()) if comments else None,
+    )
+
+
 class ArxivAdapter:
     name = "arxiv"
 
@@ -283,6 +353,52 @@ class ArxivAdapter:
             if record is not None:
                 results.append(record)
         return results
+
+    async def facts(self, paper: str) -> PaperFacts | None:
+        """Versions, withdrawal, license, comment and code links of a paper; None if unknown.
+
+        The version history and license come from OAI-PMH, which arXiv updates daily; the
+        latest version and its comment come from the API, so a new version shows up at once.
+        """
+        arxiv_id = parse_arxiv_id(paper)
+        records = await self.get([arxiv_id.base])
+        if not records:
+            return None
+        record = records[0]
+        oai = parse_oai_record(await self._fetch_oai(arxiv_id.base))
+
+        versions = list(oai.versions) if oai else []
+        if not versions or versions[-1].version < record.version:
+            versions.append(VersionInfo(version=record.version, submitted=record.updated))
+        comment = record.comment or (oai.comments if oai else None)
+        license_url = oai.license_url if oai else None
+        return PaperFacts(
+            source="arxiv",
+            source_id=record.source_id,
+            title=record.title,
+            latest_version=record.version,
+            versions=versions,
+            withdrawn=bool(comment and _WITHDRAWN.search(comment)),
+            license=license_name(license_url),
+            license_url=license_url,
+            comment=comment,
+            journal_ref=record.journal_ref,
+            doi=record.doi,
+            code_links=extract_code_links([record.abstract, comment or ""]),
+        )
+
+    async def _fetch_oai(self, base_id: str) -> str:
+        fetched = await self._get(
+            OAI_URL,
+            {
+                "verb": "GetRecord",
+                "identifier": f"oai:arXiv.org:{base_id}",
+                "metadataPrefix": "arXivRaw",
+            },
+        )
+        if fetched.status_code != 200:
+            raise SourceError(f"arXiv OAI answered HTTP {fetched.status_code}")
+        return fetched.text
 
     async def fetch_fulltext(self, paper: str, version: int | None = None) -> RawFullText:
         """Full text of one version: arXiv's HTML if there is one, otherwise the PDF.

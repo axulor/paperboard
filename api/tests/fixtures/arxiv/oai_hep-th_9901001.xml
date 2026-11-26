@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-25T17:07:30Z</responseDate>
+                <request verb="GetRecord" identifier="oai:arXiv.org:hep-th/9901001" metadataPrefix="arXivRaw">http://oaipmh.arxiv.org/oai</request>
+
+
+    <GetRecord>
+                <record>
+                <header>
+        <identifier>oai:arXiv.org:hep-th/9901001</identifier>
+        <datestamp>2008-11-25</datestamp>
+            <setSpec>physics:hep-th</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>hep-th/9901001</id>
+        <submitter>Yosuke Imamura</submitter>
+            <version version="v1">
+                <date>Fri, 01 Jan 1999 01:01:10 GMT</date>
+                <size>14kb</size>
+            </version>
+            <version version="v2">
+                <date>Tue, 05 Jan 1999 21:36:42 GMT</date>
+                <size>14kb</size>
+            </version>
+            <version version="v3">
+                <date>Mon, 10 May 1999 04:45:54 GMT</date>
+                <size>15kb</size>
+            </version>
+        <title>String Junctions and Their Duals in Heterotic String Theory</title>
+        <authors>Yosuke Imamura</authors>
+        <categories>hep-th</categories>
+            <comments>13 pages + 4 eps figures, PTPTeX, typographical errors corrected</comments>
+            <report-no>YITP-99-1</report-no>
+            <journal-ref>Prog.Theor.Phys.101:1155-1164,1999</journal-ref>
+            <doi>10.1143/PTP.101.1155</doi>
+            <abstract>  We explicitly give the correspondence between spectra of heterotic string theory compactified on $T^2$ and string junctions in type IIB theory compactified on $S^2$.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+    </GetRecord>
+</OAI-PMH>

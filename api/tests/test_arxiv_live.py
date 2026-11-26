@@ -29,3 +29,13 @@ async def test_search_recent_papers() -> None:
     assert result.total > 0
     assert 0 < len(result.records) <= 5
     assert all(r.published.date() >= date(2025, 1, 1) for r in result.records)
+
+
+async def test_facts_of_a_real_paper() -> None:
+    async with ArxivAdapter() as arxiv:
+        facts = await arxiv.facts("1706.03762")
+    assert facts is not None
+    assert facts.latest_version >= 7
+    assert [v.version for v in facts.versions][:3] == [1, 2, 3]
+    assert facts.license == "arXiv non-exclusive license"
+    assert facts.withdrawn is False
