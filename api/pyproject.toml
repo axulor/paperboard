@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "PaperBoard API, MCP connector and background worker"
 requires-python = ">=3.12"
 dependencies = [
+    "defusedxml>=0.7.1",
     "fastapi>=0.165.0",
     "httpx>=0.28.1",
     "mcp>=2.3.0",
@@ -39,4 +40,5 @@ dev = [
     "pytest>=9.2.0",
     "respx>=0.23.1",
     "ruff>=0.17.6",
+    "types-defusedxml>=0.7.0.20260504",
 ]

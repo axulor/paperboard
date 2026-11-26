@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/3U1vfxVNoGrwTt6cRfmniC9lEvw</id>
+  <title>arXiv Query: search_query=all:kv AND all:cache AND all:compression AND submittedDate:"202501010000 TO 202612312359"&amp;id_list=&amp;start=0&amp;max_results=3</title>
+  <updated>2026-11-26T04:44:10Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:kv+AND+(all:cache+AND+(all:compression+AND+submittedDate:%22202501010000+TO+202612312359%22))&amp;start=0&amp;max_results=3&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>3</opensearch:itemsPerPage>
+  <opensearch:totalResults>736</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2611.32954v1</id>
+    <title>LoomKV: Lossless KV Cache Compression from GPU Memory to SSD for LLM Serving</title>
+    <updated>2026-11-24T16:54:37Z</updated>
+    <link href="https://arxiv.org/abs/2611.32954v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2611.32954v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Large language model (LLM) serving engines offload the key/value (KV) cache from GPU memory to host DRAM and SSD so multi-turn and agent requests can reuse prompt prefixes. Capacity then limits service at two levels: external tiers govern prefix reuse before eviction, while the GPU KV pool bounds concurrent long requests, and lossy compression alters KV values and outputs. LoomKV brings lossless KV compression to both external tiers (tier mode) and the GPU pool (pool mode) on an unmodified engine. Using a calibrated per-head two-level 3-bit code over BF16 high bytes (sign and upper seven exponent bits), LoomKV stores BF16 KV at 0.71 of its raw size across nine models and FP8 KV at 0.85-0.87. In tier mode, TileStream writes exact-length records with length readback off the load path, leaving tier storage, eviction, and prefetch unchanged, and decompresses fetched records straight into scattered GPU pages. In pool mode, FragPack packs variable-length records into smaller shared-budget GPU pages read in place by a fused decode-attention kernel faster than FlashAttention-3 on BF16. Built with LMCache and vLLM, LoomKV makes compressed tiers act as 1.4x larger raw tiers on AgentX: across LMCache's LRU cliff, tier mode delivers 2.7-3.6x raw's goodput and 1.9-3.1x lower mean time-to-first-token (TTFT), shifts the cliff identically under other simulated replacement policies, and cuts repeated-prompt TTFT up to 1.7x via SSD-to-DRAM promotion. When tiers hold the working set, pool mode fits 1.31-1.34x as many GPU tokens, admitting 12 long requests with roughly raw's queue and goodput at 8. On an AI IDE trace where both tiers and the GPU pool are constrained, tier and pool modes raise goodput by 1.24x and 1.59x. Where raw capacity suffices, compression costs at most 2.2% throughput; tier mode is bit-exact with raw tiers, and pool mode matches FlashAttention-3's numerical accuracy.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-11-24T16:54:37Z</published>
+    <arxiv:comment>16 pages, 12 figures, 5 tables</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Wentao Zhu</name>
+    </author>
+    <author>
+      <name>Ziao Sheng</name>
+    </author>
+    <author>
+      <name>Peng Deng</name>
+    </author>
+    <author>
+      <name>Huiqi Hu</name>
+    </author>
+    <author>
+      <name>Xuan Zhou</name>
+    </author>
+    <author>
+      <name>Xing Wei</name>
+    </author>
+    <author>
+      <name>Zhuang Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2611.29497v1</id>
+    <title>Gossamer: A Utility-Driven Architecture for Constant-Budget KV Cache Compression in Reasoning LLMs</title>
+    <updated>2026-11-22T14:09:01Z</updated>
+    <link href="https://arxiv.org/abs/2611.29497v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2611.29497v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Transformer-based large language models (LLMs) are increasingly applied to complex reasoning tasks, yet their inference efficiency is fundamentally constrained by the rapid growth of the KV cache. As reasoning contexts extend to hundreds of thousands of tokens, the key-value (KV) cache becomes the dominant contributor to both memory footprint and bandwidth demand, tightly coupling computation with memory utilization and thereby limiting scalability. Existing compression methods, such as quantization and eviction, alleviate capacity pressure but remain purely algorithmic, often introducing additional passes and compute overhead that reduce system efficiency.
+  This paper presents Gossamer, a KV cache compression architecture for reasoning LLMs that bridges the algorithm--system--hardware gap. Gossamer introduces a unified utility-based action framework that dynamically selects compression operations, quantization, merging, or eviction, under a constant KV cache budget. Through cross-domain co-design, we fuse cosine-similarity estimation directly into the attention computation, exploiting idle compute cycles to perform similarity evaluation without latency or bandwidth cost. We call this mechanism Free-Lunch Utilization. This enables real-time, fine-grained KV management with near-constant memory usage and negligible overhead. Under tight memory constraints, Gossamer sustains reasoning quality comparable to uncompressed inference while improving end-to-end throughput by up to 16.7$\times$ over uncompressed baselines, 5.5$\times$ and 4.9$\times$ over the quantization-based Oaken and Ecco, and 1.8$\times$ over the eviction-based R-KV.</summary>
+    <category term="cs.AR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-11-22T14:09:01Z</published>
+    <arxiv:comment>MICRO 2026</arxiv:comment>
+    <arxiv:primary_category term="cs.AR"/>
+    <author>
+      <name>Feng Cheng</name>
+    </author>
+    <author>
+      <name>Cong Guo</name>
+    </author>
+    <author>
+      <name>Junyao Zhang</name>
+    </author>
+    <author>
+      <name>Haoxuan Shan</name>
+    </author>
+    <author>
+      <name>Chiyue Wei</name>
+    </author>
+    <author>
+      <name>Hong Wang</name>
+    </author>
+    <author>
+      <name>Hai Li</name>
+    </author>
+    <author>
+      <name>Yiran Chen</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2611.29092v1</id>
+    <title>One Million Tokens in 20GB: Calibration-Free 2-Bit SRFT KV-Cache Compression for Looped MoE Inference on Apple Silicon</title>
+    <updated>2026-11-21T23:30:06Z</updated>
+    <link href="https://arxiv.org/abs/2611.29092v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2611.29092v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Long-context inference on unified-memory edge machines is governed by KV-cache capacity and memory bandwidth. On a 32 GB Apple M6 Mac mini (26.8 GB Metal working set, 150 GB/s DRAM), the 26.4B looped Mixture-of-Experts model Inkling-2-Mini (48 logical visits, 1M native context) exhausts memory by 64K tokens in stock oMLX (and by 512K even after fixing its 40 sliding-window visits to bounded ring buffers). We show that three structural properties of modern hybrid NoPE architectures -- bounded sliding windows, a 1,024-token banded relative bias whose tail is identically zero, and unit-RMS value normalization -- combine with an orthonormal Subsampled Randomized Fourier Transform (SRFT) to enable calibration-free, scale-free 2.000-bit Value and 2.125-bit Key Lloyd-Max compression (2.0625 effective bits/coordinate, $7.76\times$ smaller than bf16) on the 8 global visits' far prefix $[0, N-1024)$, merged with the exact bf16 local window and learned sink via online log-sum-exp. A custom GQA-packed Metal decode kernel with a 256-entry half4 LUT and Block-8 lazy exp2 rescaling reaches 73.4 GB/s and runs Inkling-2-Mini at 17.09 tok/s at 256K ($3.36\times$ faster than bf16), 13.81 tok/s at 512K, and 9.52 tok/s at 1,048,576 tokens in 19.49 GiB peak memory (4.37 GiB KV). Across $4\times 4096$ WikiText-2 windows, 3.06-bit SRFT is lossless ($Δ$PPL $= -0.007$), 2.56-bit K3/V2 adds $+0.024$, and 2.06-bit adds $+0.130$ while achieving 100% (3/3) exact 7-digit passkey retrieval at 8K, 16K, and 32K.</summary>
+    <category term="cs.PF" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-11-21T23:30:06Z</published>
+    <arxiv:primary_category term="cs.PF"/>
+    <author>
+      <name>Mohamed Amine Bergach</name>
+    </author>
+  </entry>
+</feed>
