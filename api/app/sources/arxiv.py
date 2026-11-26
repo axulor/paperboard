@@ -2,7 +2,8 @@
 
 arXiv asks API clients for at most one request every three seconds over a single connection;
 `ArxivAdapter` enforces that with one shared `RateLimiter` per instance, so the app should keep
-one instance per process. Metadata from the API is CC0. Full text is not fetched here.
+one instance per process. Metadata from the API is CC0. Full text is fetched only to check
+quotes and is never stored.
 """
 
 import asyncio
@@ -12,7 +13,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from itertools import batched
 from types import TracebackType
-from typing import Self
+from typing import Literal, Self
 from xml.etree.ElementTree import Element, ParseError
 
 import httpx
@@ -34,6 +35,9 @@ API_URL = "https://export.arxiv.org/api/query"
 USER_AGENT = f"PaperBoard/{VERSION} (+https://github.com/axulor/paperboard)"
 MIN_INTERVAL_SECONDS = 3.0
 MAX_IDS_PER_REQUEST = 100
+HTML_URL = "https://export.arxiv.org/html/{}"
+PDF_URL = "https://export.arxiv.org/pdf/{}"
+MAX_RESPONSE_BYTES = 50 * 1024 * 1024
 
 _NS = {
     "atom": "http://www.w3.org/2005/Atom",
@@ -52,6 +56,28 @@ _ARXIV_PREFIX = re.compile(r"^arxiv:", re.I)
 _TOKEN_RE = re.compile(r'"([^"]+)"|(\S+)')
 _UNSAFE_CHARS = re.compile(r"[^\w.+-]")
 _OPERATORS = {"and", "or", "not", "andnot"}
+
+
+@dataclass(frozen=True)
+class RawFullText:
+    """Full text of one version as downloaded. Held in memory only while quotes are checked."""
+
+    source_id: str
+    version: int
+    format: Literal["html", "pdf"]
+    url: str
+    content: bytes
+
+
+@dataclass(frozen=True)
+class _Fetched:
+    status_code: int
+    headers: httpx.Headers
+    content: bytes
+
+    @property
+    def text(self) -> str:
+        return self.content.decode("utf-8", errors="replace")
 
 
 @dataclass(frozen=True)
@@ -181,10 +207,10 @@ def parse_feed(xml: str) -> SearchResult:
 MAX_RETRY_AFTER_SECONDS = 30.0
 
 
-def _retry_after_seconds(response: httpx.Response) -> float:
+def _retry_after_seconds(headers: Mapping[str, str]) -> float:
     """Seconds asked for in Retry-After, capped so one request never stalls for long."""
     try:
-        seconds = float(response.headers.get("Retry-After", "0"))
+        seconds = float(headers.get("Retry-After", "0"))
     except ValueError:
         return 0.0
     return min(max(seconds, 0.0), MAX_RETRY_AFTER_SECONDS)
@@ -201,6 +227,7 @@ class ArxivAdapter:
         timeout: float = 30.0,
         max_attempts: int = 3,
         retry_backoff: float = MIN_INTERVAL_SECONDS,
+        max_response_bytes: int = MAX_RESPONSE_BYTES,
         limiter: RateLimiter | None = None,
         client: httpx.AsyncClient | None = None,
     ) -> None:
@@ -208,6 +235,7 @@ class ArxivAdapter:
         self._limiter = limiter or RateLimiter(min_interval)
         self._max_attempts = max_attempts
         self._retry_backoff = retry_backoff
+        self._max_response_bytes = max_response_bytes
         self._owns_client = client is None
         self._client = client or httpx.AsyncClient(
             timeout=timeout, headers={"User-Agent": USER_AGENT}, follow_redirects=True
@@ -256,7 +284,58 @@ class ArxivAdapter:
                 results.append(record)
         return results
 
+    async def fetch_fulltext(self, paper: str, version: int | None = None) -> RawFullText:
+        """Full text of one version: arXiv's HTML if there is one, otherwise the PDF.
+
+        Without a version, in the argument or the identifier, the latest version is used.
+        """
+        arxiv_id = parse_arxiv_id(paper)
+        version = version or arxiv_id.version
+        if version is None:
+            records = await self.get([arxiv_id.base])
+            if not records:
+                raise SourceQueryError(f"arXiv has no paper {arxiv_id.base}")
+            version = records[0].version
+        versioned = f"{arxiv_id.base}v{version}"
+
+        candidates: tuple[tuple[Literal["html", "pdf"], str, str], ...] = (
+            ("html", HTML_URL, "text/html"),
+            ("pdf", PDF_URL, "application/pdf"),
+        )
+        for fmt, template, expected_type in candidates:
+            url = template.format(versioned)
+            fetched = await self._get(url)
+            if fetched.status_code == 404:
+                continue
+            content_type = fetched.headers.get("content-type", "")
+            if fetched.status_code == 200 and content_type.startswith(expected_type):
+                return RawFullText(arxiv_id.base, version, fmt, url, fetched.content)
+            raise SourceError(f"unexpected answer from {url}: HTTP {fetched.status_code}")
+        raise SourceQueryError(f"arXiv has no full text for {versioned}")
+
     async def _fetch(self, params: Mapping[str, str]) -> str:
+        """Query the API and return the Atom feed."""
+        fetched = await self._get(self._base_url, params)
+        if fetched.status_code == 200:
+            return fetched.text
+        # Other 4xx: arXiv explains the problem in an error entry.
+        try:
+            parse_feed(fetched.text)
+        except SourceQueryError:
+            raise
+        except SourceError:
+            pass
+        raise SourceQueryError(f"arXiv rejected the request (HTTP {fetched.status_code})")
+
+    async def _get(
+        self,
+        url: str,
+        params: Mapping[str, str] | None = None,
+    ) -> _Fetched:
+        """GET under the rate limit, retrying 5xx, 429 and network errors.
+
+        Any other answer, including 4xx, is returned for the caller to judge.
+        """
         delay = 0.0
         last_error: Exception | None = None
         for _ in range(self._max_attempts):
@@ -264,27 +343,29 @@ class ArxivAdapter:
                 await asyncio.sleep(delay)
             try:
                 async with self._limiter.slot():
-                    response = await self._client.get(self._base_url, params=params)
+                    fetched = await self._read(url, params, self._max_response_bytes)
             except httpx.TransportError as exc:
                 last_error = exc
                 delay = max(delay * 2, self._retry_backoff)
                 continue
 
-            if response.status_code == 200:
-                return response.text
-            if response.status_code == 429 or response.status_code >= 500:
-                last_error = SourceUnavailable(f"arXiv answered HTTP {response.status_code}")
-                delay = max(delay * 2, self._retry_backoff, _retry_after_seconds(response))
+            if fetched.status_code == 429 or fetched.status_code >= 500:
+                last_error = SourceUnavailable(f"arXiv answered HTTP {fetched.status_code}")
+                delay = max(delay * 2, self._retry_backoff, _retry_after_seconds(fetched.headers))
                 continue
-            # Other 4xx: arXiv explains the problem in an error entry.
-            try:
-                parse_feed(response.text)
-            except SourceQueryError:
-                raise
-            except SourceError:
-                pass
-            raise SourceQueryError(f"arXiv rejected the request (HTTP {response.status_code})")
+            return fetched
 
         raise SourceUnavailable(
             f"arXiv did not answer after {self._max_attempts} attempts"
         ) from last_error
+
+    async def _read(self, url: str, params: Mapping[str, str] | None, max_bytes: int) -> _Fetched:
+        async with self._client.stream("GET", url, params=params) as response:
+            chunks: list[bytes] = []
+            size = 0
+            async for chunk in response.aiter_bytes():
+                size += len(chunk)
+                if size > max_bytes:
+                    raise SourceError(f"answer from {url} is larger than {max_bytes} bytes")
+                chunks.append(chunk)
+            return _Fetched(response.status_code, response.headers, b"".join(chunks))

@@ -212,9 +212,7 @@ async def test_gives_up_after_max_attempts() -> None:
 def test_retry_after_is_capped() -> None:
     from app.sources.arxiv import MAX_RETRY_AFTER_SECONDS, _retry_after_seconds
 
-    assert _retry_after_seconds(httpx.Response(503, headers={"Retry-After": "5"})) == 5.0
-    assert _retry_after_seconds(httpx.Response(503, headers={"Retry-After": "3600"})) == (
-        MAX_RETRY_AFTER_SECONDS
-    )
-    assert _retry_after_seconds(httpx.Response(503, headers={"Retry-After": "soon"})) == 0.0
-    assert _retry_after_seconds(httpx.Response(503)) == 0.0
+    assert _retry_after_seconds({"Retry-After": "5"}) == 5.0
+    assert _retry_after_seconds({"Retry-After": "3600"}) == MAX_RETRY_AFTER_SECONDS
+    assert _retry_after_seconds({"Retry-After": "soon"}) == 0.0
+    assert _retry_after_seconds({}) == 0.0
