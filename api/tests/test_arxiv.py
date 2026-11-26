@@ -1,29 +1,24 @@
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
-import respx
 
 from app.sources import SearchQuery, SortOrder, SourceQueryError, SourceUnavailable
 from app.sources.arxiv import (
     API_URL,
     USER_AGENT,
-    ArxivAdapter,
     ArxivId,
     build_search_query,
     parse_arxiv_id,
 )
+from tests.http_mock import MockHTTP, arxiv_adapter
 
 FIXTURES = Path(__file__).parent / "fixtures" / "arxiv"
 
 
 def fixture(name: str) -> str:
     return (FIXTURES / name).read_text(encoding="utf-8")
-
-
-def adapter() -> ArxivAdapter:
-    return ArxivAdapter(min_interval=0, retry_backoff=0)
 
 
 @pytest.mark.parametrize(
@@ -91,13 +86,12 @@ def test_build_search_query_needs_a_term() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_get_parses_records_in_asked_order() -> None:
-    route = respx.get(API_URL).mock(return_value=httpx.Response(200, text=fixture("by_id.xml")))
-    async with adapter() as arxiv:
+async def test_get_parses_records_in_asked_order(http: MockHTTP) -> None:
+    route = http.get(API_URL).mock(return_value=httpx2.Response(200, text=fixture("by_id.xml")))
+    async with arxiv_adapter(http) as arxiv:
         records = await arxiv.get(["hep-th/9901001", "arXiv:1706.03762"])
 
-    request = route.calls.last.request
+    request = route.last_request
     assert request.url.params["id_list"] == "hep-th/9901001,1706.03762"
     assert request.url.params["max_results"] == "2"
     assert request.headers["User-Agent"] == USER_AGENT
@@ -127,24 +121,22 @@ async def test_get_parses_records_in_asked_order() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_get_leaves_out_unknown_ids() -> None:
-    respx.get(API_URL).mock(return_value=httpx.Response(200, text=fixture("missing_id.xml")))
-    async with adapter() as arxiv:
+async def test_get_leaves_out_unknown_ids(http: MockHTTP) -> None:
+    http.get(API_URL).mock(return_value=httpx2.Response(200, text=fixture("missing_id.xml")))
+    async with arxiv_adapter(http) as arxiv:
         assert await arxiv.get(["2401.99999"]) == []
 
 
 @pytest.mark.anyio
-async def test_get_with_no_ids_sends_nothing() -> None:
-    async with adapter() as arxiv:
+async def test_get_with_no_ids_sends_nothing(http: MockHTTP) -> None:
+    async with arxiv_adapter(http) as arxiv:
         assert await arxiv.get([]) == []
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_search_sends_query_and_parses_results() -> None:
-    route = respx.get(API_URL).mock(
-        return_value=httpx.Response(200, text=fixture("search_recent.xml"))
+async def test_search_sends_query_and_parses_results(http: MockHTTP) -> None:
+    route = http.get(API_URL).mock(
+        return_value=httpx2.Response(200, text=fixture("search_recent.xml"))
     )
     query = SearchQuery(
         text="kv cache compression",
@@ -154,10 +146,10 @@ async def test_search_sends_query_and_parses_results() -> None:
         limit=3,
         offset=0,
     )
-    async with adapter() as arxiv:
+    async with arxiv_adapter(http) as arxiv:
         result = await arxiv.search(query)
 
-    params = route.calls.last.request.url.params
+    params = route.last_request.url.params
     assert params["search_query"] == (
         "all:kv AND all:cache AND all:compression AND submittedDate:[202501010000 TO 202612312359]"
     )
@@ -176,43 +168,40 @@ async def test_search_sends_query_and_parses_results() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_rejected_query_reports_arxivs_message() -> None:
-    respx.get(API_URL).mock(return_value=httpx.Response(400, text=fixture("bad_query.xml")))
-    async with adapter() as arxiv:
+async def test_rejected_query_reports_arxivs_message(http: MockHTTP) -> None:
+    http.get(API_URL).mock(return_value=httpx2.Response(400, text=fixture("bad_query.xml")))
+    async with arxiv_adapter(http) as arxiv:
         with pytest.raises(SourceQueryError, match="Invalid query string"):
             await arxiv.search(SearchQuery(text="anything"))
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_retries_server_errors_then_succeeds() -> None:
-    route = respx.get(API_URL).mock(
+async def test_retries_server_errors_then_succeeds(http: MockHTTP) -> None:
+    route = http.get(API_URL).mock(
         side_effect=[
-            httpx.Response(503),
-            httpx.ConnectTimeout("timeout"),
-            httpx.Response(200, text=fixture("missing_id.xml")),
+            httpx2.Response(503),
+            httpx2.ConnectTimeout("timeout"),
+            httpx2.Response(200, text=fixture("missing_id.xml")),
         ]
     )
-    async with adapter() as arxiv:
+    async with arxiv_adapter(http) as arxiv:
         assert await arxiv.get(["2401.99999"]) == []
     assert route.call_count == 3
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_gives_up_after_max_attempts() -> None:
-    route = respx.get(API_URL).mock(return_value=httpx.Response(503))
-    async with adapter() as arxiv:
+async def test_gives_up_after_max_attempts(http: MockHTTP) -> None:
+    route = http.get(API_URL).mock(return_value=httpx2.Response(503))
+    async with arxiv_adapter(http) as arxiv:
         with pytest.raises(SourceUnavailable):
             await arxiv.get(["2401.12345"])
     assert route.call_count == 3
 
 
 def test_retry_after_is_capped() -> None:
-    from app.sources.arxiv import MAX_RETRY_AFTER_SECONDS, _retry_after_seconds
+    from app.sources.arxiv import MAX_RETRY_AFTER_SECONDS, retry_after_seconds
 
-    assert _retry_after_seconds({"Retry-After": "5"}) == 5.0
-    assert _retry_after_seconds({"Retry-After": "3600"}) == MAX_RETRY_AFTER_SECONDS
-    assert _retry_after_seconds({"Retry-After": "soon"}) == 0.0
-    assert _retry_after_seconds({}) == 0.0
+    assert retry_after_seconds({"Retry-After": "5"}) == 5.0
+    assert retry_after_seconds({"Retry-After": "3600"}) == MAX_RETRY_AFTER_SECONDS
+    assert retry_after_seconds({"Retry-After": "soon"}) == 0.0
+    assert retry_after_seconds({}) == 0.0

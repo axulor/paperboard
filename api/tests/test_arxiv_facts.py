@@ -1,21 +1,20 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
-import respx
 
 from app.sources import SourceError
 from app.sources.arxiv import (
     API_URL,
     HTML_URL,
     OAI_URL,
-    ArxivAdapter,
     RawFullText,
     license_name,
     parse_oai_record,
 )
 from app.verify.fulltext import parse_fulltext
+from tests.http_mock import MockHTTP, arxiv_adapter
 
 FIXTURES = Path(__file__).parent / "fixtures" / "arxiv"
 
@@ -24,13 +23,9 @@ def fixture(name: str) -> str:
     return (FIXTURES / name).read_text(encoding="utf-8")
 
 
-def adapter() -> ArxivAdapter:
-    return ArxivAdapter(min_interval=0, retry_backoff=0)
-
-
-def mock_arxiv(api: str, oai: str) -> None:
-    respx.get(API_URL).mock(return_value=httpx.Response(200, text=fixture(api)))
-    respx.get(OAI_URL).mock(return_value=httpx.Response(200, text=fixture(oai)))
+def mock_arxiv(http: MockHTTP, api: str, oai: str) -> None:
+    http.get(API_URL).mock(return_value=httpx2.Response(200, text=fixture(api)))
+    http.get(OAI_URL).mock(return_value=httpx2.Response(200, text=fixture(oai)))
 
 
 @pytest.mark.parametrize(
@@ -48,7 +43,7 @@ def test_license_name(url: str | None, name: str | None) -> None:
     assert license_name(url) == name
 
 
-def test_parse_oai_record() -> None:
+def test_parse_oai_record(http: MockHTTP) -> None:
     record = parse_oai_record(fixture("oai_1706.03762.xml"))
     assert record is not None
     assert [v.version for v in record.versions] == [1, 2, 3, 4, 5, 6, 7]
@@ -61,7 +56,7 @@ def test_parse_oai_record_unknown_id() -> None:
     assert parse_oai_record(fixture("oai_missing.xml")) is None
 
 
-def test_parse_oai_record_other_error() -> None:
+def test_parse_oai_record_other_error(http: MockHTTP) -> None:
     xml = (
         '<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/">'
         '<error code="badArgument">Illegal argument</error></OAI-PMH>'
@@ -71,10 +66,9 @@ def test_parse_oai_record_other_error() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_facts_of_a_paper_with_many_versions() -> None:
-    mock_arxiv("by_id.xml", "oai_1706.03762.xml")
-    async with adapter() as arxiv:
+async def test_facts_of_a_paper_with_many_versions(http: MockHTTP) -> None:
+    mock_arxiv(http, "by_id.xml", "oai_1706.03762.xml")
+    async with arxiv_adapter(http) as arxiv:
         facts = await arxiv.facts("https://arxiv.org/abs/1706.03762v2")
     assert facts is not None
     assert facts.source_id == "1706.03762"
@@ -88,10 +82,9 @@ async def test_facts_of_a_paper_with_many_versions() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_facts_of_an_old_paper_without_license() -> None:
-    mock_arxiv("by_id.xml", "oai_hep-th_9901001.xml")
-    async with adapter() as arxiv:
+async def test_facts_of_an_old_paper_without_license(http: MockHTTP) -> None:
+    mock_arxiv(http, "by_id.xml", "oai_hep-th_9901001.xml")
+    async with arxiv_adapter(http) as arxiv:
         facts = await arxiv.facts("hep-th/9901001")
     assert facts is not None
     assert [v.version for v in facts.versions] == [1, 2, 3]
@@ -101,11 +94,10 @@ async def test_facts_of_an_old_paper_without_license() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_withdrawn_version_newer_than_oai() -> None:
+async def test_withdrawn_version_newer_than_oai(http: MockHTTP) -> None:
     # OAI is updated daily: it still lists only v1 while the API already has the withdrawal.
-    mock_arxiv("api_2611.30211.xml", "oai_2611.30211.xml")
-    async with adapter() as arxiv:
+    mock_arxiv(http, "api_2611.30211.xml", "oai_2611.30211.xml")
+    async with arxiv_adapter(http) as arxiv:
         facts = await arxiv.facts("2611.30211")
     assert facts is not None
     assert facts.latest_version == 2
@@ -116,10 +108,9 @@ async def test_withdrawn_version_newer_than_oai() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_facts_when_oai_has_no_record_yet() -> None:
-    mock_arxiv("api_2611.30211.xml", "oai_missing.xml")
-    async with adapter() as arxiv:
+async def test_facts_when_oai_has_no_record_yet(http: MockHTTP) -> None:
+    mock_arxiv(http, "api_2611.30211.xml", "oai_missing.xml")
+    async with arxiv_adapter(http) as arxiv:
         facts = await arxiv.facts("2611.30211")
     assert facts is not None
     assert [v.version for v in facts.versions] == [2]
@@ -127,20 +118,18 @@ async def test_facts_when_oai_has_no_record_yet() -> None:
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_facts_of_an_unknown_paper() -> None:
-    respx.get(API_URL).mock(return_value=httpx.Response(200, text=fixture("missing_id.xml")))
-    oai = respx.get(OAI_URL)
-    async with adapter() as arxiv:
+async def test_facts_of_an_unknown_paper(http: MockHTTP) -> None:
+    http.get(API_URL).mock(return_value=httpx2.Response(200, text=fixture("missing_id.xml")))
+    oai = http.get(OAI_URL)
+    async with arxiv_adapter(http) as arxiv:
         assert await arxiv.facts("2401.99999") is None
     assert not oai.called
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_facts_license_and_comment_of_a_cc_paper() -> None:
-    mock_arxiv("api_2401.04088.xml", "oai_2401.04088.xml")
-    async with adapter() as arxiv:
+async def test_facts_license_and_comment_of_a_cc_paper(http: MockHTTP) -> None:
+    mock_arxiv(http, "api_2401.04088.xml", "oai_2401.04088.xml")
+    async with arxiv_adapter(http) as arxiv:
         facts = await arxiv.facts("2401.04088")
     assert facts is not None
     assert facts.license == "CC BY 4.0"

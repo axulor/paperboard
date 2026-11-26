@@ -1,11 +1,10 @@
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
-import respx
 
 from app.sources import SourceError, SourceQueryError
-from app.sources.arxiv import API_URL, HTML_URL, PDF_URL, ArxivAdapter, RawFullText
+from app.sources.arxiv import API_URL, HTML_URL, PDF_URL, RawFullText
 from app.verify import QuoteError, QuoteStatus, verify_quotes
 from app.verify.fulltext import (
     FullText,
@@ -15,6 +14,7 @@ from app.verify.fulltext import (
     strip_numeric_citations,
 )
 from app.verify.quotes import MAX_QUOTE_CHARS, QuoteFinder, skeleton
+from tests.http_mock import MockHTTP, arxiv_adapter
 
 FIXTURES = Path(__file__).parent / "fixtures" / "arxiv"
 HTML_FIXTURE = FIXTURES / "html_2401.04088v1.html"
@@ -226,76 +226,66 @@ def test_quote_must_not_be_too_long(html_doc: FullText) -> None:
 # --- download and verify_quotes ----------------------------------------------------------------
 
 
-def adapter() -> ArxivAdapter:
-    return ArxivAdapter(min_interval=0, retry_backoff=0)
-
-
-def html_response() -> httpx.Response:
-    return httpx.Response(
+def html_response() -> httpx2.Response:
+    return httpx2.Response(
         200, content=HTML_FIXTURE.read_bytes(), headers={"content-type": "text/html; charset=utf-8"}
     )
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_fetch_prefers_html() -> None:
-    respx.get(HTML_URL.format("2401.04088v1")).mock(return_value=html_response())
-    async with adapter() as arxiv:
+async def test_fetch_prefers_html(http: MockHTTP) -> None:
+    http.get(HTML_URL.format("2401.04088v1")).mock(return_value=html_response())
+    async with arxiv_adapter(http) as arxiv:
         raw = await arxiv.fetch_fulltext("2401.04088", 1)
     assert (raw.format, raw.source_id, raw.version) == ("html", "2401.04088", 1)
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_fetch_falls_back_to_pdf() -> None:
-    respx.get(HTML_URL.format("2310.06825v1")).mock(return_value=httpx.Response(404))
-    respx.get(PDF_URL.format("2310.06825v1")).mock(
-        return_value=httpx.Response(
+async def test_fetch_falls_back_to_pdf(http: MockHTTP) -> None:
+    http.get(HTML_URL.format("2310.06825v1")).mock(return_value=httpx2.Response(404))
+    http.get(PDF_URL.format("2310.06825v1")).mock(
+        return_value=httpx2.Response(
             200, content=PDF_FIXTURE.read_bytes(), headers={"content-type": "application/pdf"}
         )
     )
-    async with adapter() as arxiv:
+    async with arxiv_adapter(http) as arxiv:
         raw = await arxiv.fetch_fulltext("arXiv:2310.06825v1")
     assert raw.format == "pdf"
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_fetch_unknown_version() -> None:
-    respx.get(HTML_URL.format("2401.04088v9")).mock(return_value=httpx.Response(404))
-    respx.get(PDF_URL.format("2401.04088v9")).mock(return_value=httpx.Response(404))
-    async with adapter() as arxiv:
+async def test_fetch_unknown_version(http: MockHTTP) -> None:
+    http.get(HTML_URL.format("2401.04088v9")).mock(return_value=httpx2.Response(404))
+    http.get(PDF_URL.format("2401.04088v9")).mock(return_value=httpx2.Response(404))
+    async with arxiv_adapter(http) as arxiv:
         with pytest.raises(SourceQueryError, match="no full text"):
             await arxiv.fetch_fulltext("2401.04088", 9)
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_fetch_without_version_uses_the_latest() -> None:
-    respx.get(API_URL).mock(
-        return_value=httpx.Response(200, text=(FIXTURES / "by_id.xml").read_text(encoding="utf-8"))
+async def test_fetch_without_version_uses_the_latest(http: MockHTTP) -> None:
+    http.get(API_URL).mock(
+        return_value=httpx2.Response(200, text=(FIXTURES / "by_id.xml").read_text(encoding="utf-8"))
     )
-    html = respx.get(HTML_URL.format("1706.03762v7")).mock(return_value=html_response())
-    async with adapter() as arxiv:
+    html = http.get(HTML_URL.format("1706.03762v7")).mock(return_value=html_response())
+    async with arxiv_adapter(http) as arxiv:
         raw = await arxiv.fetch_fulltext("1706.03762")
     assert raw.version == 7
     assert html.called
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_fetch_refuses_oversized_answers() -> None:
-    respx.get(HTML_URL.format("2401.04088v1")).mock(return_value=html_response())
-    async with ArxivAdapter(min_interval=0, retry_backoff=0, max_response_bytes=1000) as arxiv:
+async def test_fetch_refuses_oversized_answers(http: MockHTTP) -> None:
+    http.get(HTML_URL.format("2401.04088v1")).mock(return_value=html_response())
+    async with arxiv_adapter(http, max_response_bytes=1000) as arxiv:
         with pytest.raises(SourceError, match="larger than"):
             await arxiv.fetch_fulltext("2401.04088", 1)
 
 
 @pytest.mark.anyio
-@respx.mock
-async def test_verify_quotes_end_to_end() -> None:
-    route = respx.get(HTML_URL.format("2401.04088v1")).mock(return_value=html_response())
-    async with adapter() as arxiv:
+async def test_verify_quotes_end_to_end(http: MockHTTP) -> None:
+    route = http.get(HTML_URL.format("2401.04088v1")).mock(return_value=html_response())
+    async with arxiv_adapter(http) as arxiv:
         report = await verify_quotes(
             arxiv,
             "2401.04088v1",
@@ -312,8 +302,8 @@ async def test_verify_quotes_end_to_end() -> None:
 
 
 @pytest.mark.anyio
-async def test_verify_quotes_rejects_bad_quotes_before_downloading() -> None:
-    async with adapter() as arxiv:
+async def test_verify_quotes_rejects_bad_quotes_before_downloading(http: MockHTTP) -> None:
+    async with arxiv_adapter(http) as arxiv:
         with pytest.raises(QuoteError):
             await verify_quotes(arxiv, "2401.04088v1", ["too short"])
         with pytest.raises(QuoteError):
