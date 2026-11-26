@@ -20,7 +20,7 @@ jobs:
         working-directory: api
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.4.0 # only full version tags are published
         with:
           working-directory: api
           enable-cache: true
