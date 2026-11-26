@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-20T09:00:02Z</responseDate>
+                <request verb="GetRecord" identifier="oai:arXiv.org:2401.04088" metadataPrefix="arXivRaw">http://oaipmh.arxiv.org/oai</request>
+
+
+    <GetRecord>
+                <record>
+                <header>
+        <identifier>oai:arXiv.org:2401.04088</identifier>
+        <datestamp>2024-01-09</datestamp>
+            <setSpec>cs:cs:LG</setSpec>
+            <setSpec>cs:cs:CL</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2401.04088</id>
+        <submitter>Devendra Singh Chaplot</submitter>
+            <version version="v1">
+                <date>Mon, 08 Jan 2024 18:47:34 GMT</date>
+                <size>2810kb</size>
+                    <source_type>D</source_type>
+            </version>
+        <title>Mixtral of Experts</title>
+        <authors>Albert Q. Jiang, Alexandre Sablayrolles, Antoine Roux, Arthur Mensch, Blanche Savary, Chris Bamford, Devendra Singh Chaplot, Diego de las Casas, Emma Bou Hanna, Florian Bressand, Gianna Lengyel, Guillaume Bour, Guillaume Lample, L\&#39;elio Renard Lavaud, Lucile Saulnier, Marie-Anne Lachaux, Pierre Stock, Sandeep Subramanian, Sophia Yang, Szymon Antoniak, Teven Le Scao, Th\&#39;eophile Gervet, Thibaut Lavril, Thomas Wang, Timoth\&#39;ee Lacroix, William El Sayed</authors>
+        <categories>cs.LG cs.CL</categories>
+            <comments>See more details at https://mistral.ai/news/mixtral-of-experts/</comments>
+            <license>http://creativecommons.org/licenses/by/4.0/</license>
+            <abstract>We introduce Mixtral 8x7B, a Sparse Mixture of Experts (SMoE) language model. Mixtral has the same architecture as Mistral 7B, with the difference that each layer is composed of 8 feedforward blocks (i.e. experts). For every token, at each layer, a router network selects two experts to process the current state and combine their outputs. Even though each token only sees two experts, the selected experts can be different at each timestep. As a result, each token has access to 47B parameters, but only uses 13B active parameters during inference. Mixtral was trained with a context size of 32k tokens and it outperforms or matches Llama 2 70B and GPT-3.5 across all evaluated benchmarks. In particular, Mixtral vastly outperforms Llama 2 70B on mathematics, code generation, and multilingual benchmarks. We also provide a model fine-tuned to follow instructions, Mixtral 8x7B - Instruct, that surpasses GPT-3.5 Turbo, Claude-2.1, Gemini Pro, and Llama 2 70B - chat model on human benchmarks. Both the base and instruct models are released under the Apache 2.0 license.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+    </GetRecord>
+</OAI-PMH>

@@ -11,6 +11,8 @@ from typing import Protocol
 
 from pydantic import BaseModel, Field
 
+from app.sources.codelinks import CodeLink
+
 
 class SourceError(Exception):
     """Base class for adapter errors."""
@@ -56,6 +58,31 @@ class PaperRecord(BaseModel):
     doi: str | None = None
     abs_url: str
     pdf_url: str | None = None
+
+
+class VersionInfo(BaseModel):
+    version: int
+    submitted: datetime
+    size_kb: int | None = None
+
+
+class PaperFacts(BaseModel):
+    """What the source itself says about a work, computed without any AI judgement."""
+
+    source: str
+    source_id: str
+    title: str
+    latest_version: int
+    versions: list[VersionInfo]
+    withdrawn: bool
+    license: str | None = Field(default=None, description="Short name, e.g. CC BY 4.0")
+    license_url: str | None = None
+    comment: str | None = Field(default=None, description="Author comment of the latest version")
+    journal_ref: str | None = None
+    doi: str | None = None
+    code_links: list[CodeLink] = Field(
+        default=[], description="Links to code, models or data found in the metadata"
+    )
 
 
 class SearchResult(BaseModel):

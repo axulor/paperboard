@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/kLiAKmlpFW81ntyxa5N+P7Mibxk</id>
+  <title>arXiv Query: search_query=&amp;id_list=2611.30211&amp;start=0&amp;max_results=1</title>
+  <updated>2026-11-26T05:08:09Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=&amp;start=0&amp;max_results=1&amp;id_list=2611.30211" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>1</opensearch:itemsPerPage>
+  <opensearch:totalResults>1</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2611.30211v2</id>
+    <title>Numerical simulations of CCP-2D GEC with sGMRES</title>
+    <updated>2026-11-25T16:06:27Z</updated>
+    <link href="https://arxiv.org/abs/2611.30211v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2611.30211v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Fluid models provide an efficient means of simulating the low-temperature gas discharges, which are important in semiconductor manufacturing. This work presents, to the best of our knowledge, the first systematic numerical framework for the Gaseous Electronics Conference (GEC) reference cell of the 2D capacitively coupled plasma (CCP). The framework employs a structured, nonuniform cylindrical mesh to resolve the spatial gradients. A semi-implicit Scharfetter-Gummel (SG) scheme is used for the Poisson's equation, while the implicit SG schemes are applied to the continuity equations and the electron energy equation. Both the explicit and and the implicit formulations based on the conventional drift-diffusion terms are also investigated. To solve the resulting large-scale linear systems, we introduce an incomplete LU (ILU)-preconditioned sketched GMRES (sGMRES) method as the solver. As far as we know, this work is the first to apply the randomized sGMRES to the practical simulations in the engineering. By reducing the cost of the global orthogonalization, ILU-sGMRES achieves greater computational efficiency than ILU-GMRES while maintaining the accuracy, particularly at relatively large values of the restart. Specifically, numerical tests demonstrate that ILU-sGMRES can reduce the end-to-end wall-clock time by up to 25.38\% on a single machine and up to 11.71\% in a three-node benchmark compared with the conventional ILU-GMRES, while maintaining a maximum relative difference across plasma fields of only 0.194\%. Numerical experiments compare the performance of different numerical schemes and solvers, demonstrating the robustness of ILU-sGMRES in the real simulation.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-11-23T07:48:02Z</published>
+    <arxiv:comment>This paper has been withdrawn because it was submitted without the full consent of all co-authors and contains critical methodological errors as well as unresolved academic compliance issues</arxiv:comment>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Zhenyu Zou</name>
+    </author>
+    <author>
+      <name>Haoran Guan</name>
+    </author>
+    <author>
+      <name>Kangxin Liu</name>
+    </author>
+    <author>
+      <name>Yufeng Wei</name>
+    </author>
+    <author>
+      <name>Yipei Chen</name>
+    </author>
+    <author>
+      <name>Peiting You</name>
+    </author>
+    <author>
+      <name>Yuwei Fan</name>
+    </author>
+  </entry>
+</feed>

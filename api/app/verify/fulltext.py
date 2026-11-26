@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from selectolax.lexbor import LexborHTMLParser, LexborNode
 
 from app.sources.arxiv import RawFullText
+from app.sources.codelinks import CodeLink, extract_code_links
 
 
 class PassageKind(StrEnum):
@@ -42,6 +43,12 @@ class FullText(BaseModel):
     format: Literal["html", "pdf"]
     url: str
     passages: list[Passage]
+    links: list[str] = []
+    """External link targets in the document (HTML only)."""
+
+    def code_links(self) -> list[CodeLink]:
+        """Code, model and dataset links mentioned in the text or linked from it."""
+        return extract_code_links([*(p.text for p in self.passages), *self.links])
 
     @property
     def content_hash(self) -> str:
@@ -95,12 +102,12 @@ def public_url(url: str) -> str:
 
 
 def parse_fulltext(raw: RawFullText) -> FullText:
-    passages = (
-        parse_arxiv_html(raw.content, raw.url)
-        if raw.format == "html"
-        else parse_pdf(raw.content, raw.url)
-    )
+    if raw.format == "html":
+        passages, links = parse_arxiv_html(raw.content, raw.url)
+    else:
+        passages, links = parse_pdf(raw.content, raw.url), []
     return FullText(
+        links=links,
         source="arxiv",
         source_id=raw.source_id,
         version=raw.version,
@@ -213,7 +220,8 @@ def _passage(
     )
 
 
-def parse_arxiv_html(content: bytes, url: str) -> list[Passage]:
+def parse_arxiv_html(content: bytes, url: str) -> tuple[list[Passage], list[str]]:
+    """Located passages, and the external links of the page (to find code links)."""
     tree = LexborHTMLParser(content.decode("utf-8", errors="replace"))
     page = public_url(url)
     passages: list[Passage] = []
@@ -266,7 +274,12 @@ def parse_arxiv_html(content: bytes, url: str) -> list[Passage]:
         if p := _passage(PassageKind.FOOTNOTE, location, link, content_node):
             passages.append(p)
 
-    return passages
+    links: dict[str, None] = {}
+    for link in tree.css("article a[href]"):
+        href = link.attributes.get("href") or ""
+        if href.startswith(("http://", "https://")) and "arxiv.org" not in href:
+            links[href] = None
+    return passages, list(links)
 
 
 # --- PDF ---------------------------------------------------------------------------------------

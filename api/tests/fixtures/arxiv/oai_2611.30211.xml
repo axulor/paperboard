@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-24T08:40:51Z</responseDate>
+                <request verb="GetRecord" identifier="oai:arXiv.org:2611.30211" metadataPrefix="arXivRaw">http://oaipmh.arxiv.org/oai</request>
+
+
+    <GetRecord>
+                <record>
+                <header>
+        <identifier>oai:arXiv.org:2611.30211</identifier>
+        <datestamp>2026-11-24</datestamp>
+            <setSpec>math:math:NA</setSpec>
+            <setSpec>cs:cs:NA</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2611.30211</id>
+        <submitter>Haoran Guan</submitter>
+            <version version="v1">
+                <date>Mon, 23 Nov 2026 07:48:02 GMT</date>
+                <size>3814kb</size>
+            </version>
+        <title>Numerical simulations of CCP-2D GEC with sGMRES</title>
+        <authors>Zhenyu Zou, Haoran Guan, Kangxin Liu, Yufeng Wei, Yipei Chen, Peiting You and Yuwei Fan</authors>
+        <categories>math.NA cs.NA</categories>
+            <msc-class>65M06, 65N06, 76X05, 35K57, 65F10</msc-class>
+            <license>http://arxiv.org/licenses/nonexclusive-distrib/1.0/</license>
+            <abstract>Fluid models provide an efficient means of simulating the low-temperature gas discharges, which are important in semiconductor manufacturing. This work presents, to the best of our knowledge, the first systematic numerical framework for the Gaseous Electronics Conference (GEC) reference cell of the 2D capacitively coupled plasma (CCP). The framework employs a structured, nonuniform cylindrical mesh to resolve the spatial gradients. A semi-implicit Scharfetter-Gummel (SG) scheme is used for the Poisson&#39;s equation, while the implicit SG schemes are applied to the continuity equations and the electron energy equation. Both the explicit and and the implicit formulations based on the conventional drift-diffusion terms are also investigated. To solve the resulting large-scale linear systems, we introduce an incomplete LU (ILU)-preconditioned sketched GMRES (sGMRES) method as the solver. As far as we know, this work is the first to apply the randomized sGMRES to the practical simulations in the engineering. By reducing the cost of the global orthogonalization, ILU-sGMRES achieves greater computational efficiency than ILU-GMRES while maintaining the accuracy, particularly at relatively large values of the restart. Specifically, numerical tests demonstrate that ILU-sGMRES can reduce the end-to-end wall-clock time by up to 25.38\% on a single machine and up to 11.71\% in a three-node benchmark compared with the conventional ILU-GMRES, while maintaining a maximum relative difference across plasma fields of only 0.194\%. Numerical experiments compare the performance of different numerical schemes and solvers, demonstrating the robustness of ILU-sGMRES in the real simulation.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+    </GetRecord>
+</OAI-PMH>
