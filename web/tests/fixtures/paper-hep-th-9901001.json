@@ -1,0 +1,39 @@
+{
+  "facts": {
+    "source": "arxiv",
+    "source_id": "hep-th/9901001",
+    "title": "String Junctions and Their Duals in Heterotic String Theory",
+    "authors": ["Yosuke Imamura"],
+    "abstract": "We explicitly give the correspondence between spectra of heterotic string theory compactified on $T^2$ and string junctions in type IIB theory compactified on $S^2$.",
+    "primary_category": "hep-th",
+    "latest_version": 3,
+    "versions": [
+      {
+        "version": 1,
+        "submitted": "1999-01-01T01:01:10Z",
+        "size_kb": 14
+      },
+      {
+        "version": 2,
+        "submitted": "1999-01-05T21:36:42Z",
+        "size_kb": 14
+      },
+      {
+        "version": 3,
+        "submitted": "1999-05-10T04:45:54Z",
+        "size_kb": 15
+      }
+    ],
+    "withdrawn": false,
+    "license": null,
+    "license_url": null,
+    "comment": "13 pages + 4 eps figures, PTPTeX, typographical errors corrected",
+    "journal_ref": "Prog.Theor.Phys.101:1155-1164,1999",
+    "doi": "10.1143/PTP.101.1155",
+    "code_links": []
+  },
+  "code_links": [],
+  "full_text_url": "https://arxiv.org/html/hep-th/9901001v3",
+  "full_text_format": "html",
+  "full_text_problem": null
+}

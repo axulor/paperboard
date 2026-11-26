@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app import VERSION
 from app.config import Settings
 from app.mcp.server import build_mcp_app, build_mcp_server
-from app.rest import health
+from app.rest import health, papers
 from app.sources import ArxivAdapter
 
 
@@ -44,6 +44,7 @@ def create_app(settings: Settings | None = None, *, arxiv: ArxivAdapter | None =
 
     app = FastAPI(title="PaperBoard API", version=VERSION, lifespan=lifespan)
     app.include_router(health.router, prefix="/api")
+    app.include_router(papers.build_router(arxiv, sessions=sessions), prefix="/api")
     # Mounted last at the root so it only receives what the REST routes did not match (/mcp).
     app.mount("/", mcp_app)
     return app

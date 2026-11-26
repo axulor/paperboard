@@ -72,6 +72,10 @@ class PaperFacts(BaseModel):
     source: str
     source_id: str
     title: str
+    # Defaults keep reports cached before these fields existed readable.
+    authors: list[str] = []
+    abstract: str | None = Field(default=None, description="Abstract of the latest version")
+    primary_category: str | None = Field(default=None, description="e.g. cs.CL")
     latest_version: int
     versions: list[VersionInfo]
     withdrawn: bool

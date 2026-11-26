@@ -357,7 +357,8 @@ class ArxivAdapter:
         return results
 
     async def facts(self, paper: str) -> PaperFacts | None:
-        """Versions, withdrawal, license, comment and code links of a paper; None if unknown.
+        """Authors, abstract, versions, withdrawal, license, comment and code links of a paper;
+        None if unknown.
 
         The version history and license come from OAI-PMH, which arXiv updates daily; the
         latest version and its comment come from the API, so a new version shows up at once.
@@ -378,6 +379,9 @@ class ArxivAdapter:
             source="arxiv",
             source_id=record.source_id,
             title=record.title,
+            authors=record.authors,
+            abstract=record.abstract,
+            primary_category=record.primary_category,
             latest_version=record.version,
             versions=versions,
             withdrawn=bool(comment and _WITHDRAWN.search(comment)),
