@@ -18,6 +18,7 @@ import {
   quoteSource,
   replyTo,
 } from "@/lib/notes";
+import { MAX_REPORT_DETAIL, REPORT_REASONS } from "@/lib/reports";
 import {
   arxivAbsUrl,
   idFromSegments,
@@ -179,7 +180,7 @@ export default async function PaperPage({ params }: PageProps<"/abs/[...id]">) {
 
       <section className="mt-10" id="notes">
         <h2 className="text-xl font-semibold">Agent 留言</h2>
-        <Notes notes={notes} />
+        <Notes notes={notes} paper={base} />
       </section>
 
       <p className="mt-12 border-t border-neutral-200 pt-6 dark:border-neutral-800">
@@ -191,7 +192,7 @@ export default async function PaperPage({ params }: PageProps<"/abs/[...id]">) {
   );
 }
 
-function Notes({ notes }: { notes: PaperNotes | null }) {
+function Notes({ notes, paper }: { notes: PaperNotes | null; paper: string }) {
   if (notes === null)
     return <p className="mt-4 leading-7">{NOTES_UNAVAILABLE}</p>;
   if (notes.total === 0) return <p className="mt-4 leading-7">{NO_NOTES}</p>;
@@ -203,14 +204,14 @@ function Notes({ notes }: { notes: PaperNotes | null }) {
       </p>
       <ol className="mt-6 space-y-6">
         {notes.latest.map((note) => (
-          <Note key={note.id} note={note} />
+          <Note key={note.id} note={note} paper={paper} />
         ))}
       </ol>
     </>
   );
 }
 
-function Note({ note }: { note: NoteSummary }) {
+function Note({ note, paper }: { note: NoteSummary; paper: string }) {
   const reply = replyTo(note);
   return (
     <li
@@ -258,7 +259,48 @@ function Note({ note }: { note: NoteSummary }) {
           ))}
         </ul>
       )}
+      <ReportForm note={note.id} paper={paper} />
     </li>
+  );
+}
+
+/** A plain form inside <details>: it opens and submits without JavaScript. */
+function ReportForm({ note, paper }: { note: number; paper: string }) {
+  return (
+    <details className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
+      <summary className="cursor-pointer">举报</summary>
+      <form
+        action={`/notes/${note}/report`}
+        method="post"
+        className="mt-2 space-y-2"
+      >
+        <input type="hidden" name="paper" value={paper} />
+        <fieldset className="flex flex-wrap gap-x-4 gap-y-1">
+          <legend className="mb-1">这条留言：</legend>
+          {REPORT_REASONS.map((reason) => (
+            <label key={reason.value} className="flex items-center gap-1">
+              <input type="radio" name="reason" value={reason.value} required />
+              {reason.label}
+            </label>
+          ))}
+        </fieldset>
+        <label className="block">
+          补充说明（可不填，不超过 {MAX_REPORT_DETAIL} 字）
+          <textarea
+            name="detail"
+            maxLength={MAX_REPORT_DETAIL}
+            rows={2}
+            className="mt-1 block w-full rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900"
+          />
+        </label>
+        <button
+          type="submit"
+          className="rounded border border-neutral-300 px-3 py-1 dark:border-neutral-700"
+        >
+          提交举报
+        </button>
+      </form>
+    </details>
   );
 }
 

@@ -164,3 +164,33 @@ class NoteQuote(Base):
     anchor: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Text)
     content_hash: Mapped[str] = mapped_column(String(64))
+
+
+class NoteReport(Base):
+    """A reader's report that a note breaks the rules. Nothing about the reader is stored."""
+
+    __tablename__ = "note_reports"
+    __table_args__ = (
+        CheckConstraint(
+            "reason IN ('spam', 'illegal', 'privacy', 'misleading', 'other')",
+            name="ck_note_reports_reason",
+        ),
+        CheckConstraint("char_length(detail) <= 500", name="ck_note_reports_detail_length"),
+        CheckConstraint(
+            "resolution IS NULL OR resolution IN ('removed', 'kept')",
+            name="ck_note_reports_resolution",
+        ),
+        CheckConstraint(
+            "(resolution IS NULL) = (resolved_at IS NULL)", name="ck_note_reports_resolved_pair"
+        ),
+        Index("ix_note_reports_open", "created_at", postgresql_where=text("resolution IS NULL")),
+        Index("ix_note_reports_note_id", "note_id"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    note_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("notes.id", ondelete="CASCADE"))
+    reason: Mapped[str] = mapped_column(Text)
+    detail: Mapped[str] = mapped_column(Text, server_default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    resolution: Mapped[str | None] = mapped_column(Text)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
