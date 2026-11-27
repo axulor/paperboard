@@ -88,6 +88,17 @@ const server = createServer((request, response) => {
   const url = new URL(request.url, "http://localhost");
   const path = url.pathname;
   if (path === "/api/health") return send(response, 200, { status: "ok" });
+  if (path === "/api/sitemap")
+    return send(response, 200, {
+      papers: [
+        {
+          source: "arxiv",
+          source_id: "2401.04088",
+          updated: "2026-11-27T09:30:00Z",
+        },
+      ],
+      topics: [{ id: 3, updated: "2026-11-27T10:00:00Z" }],
+    });
   if (path === "/api/topics") {
     const query = (url.searchParams.get("q") ?? "").toLowerCase();
     if (query === "down")
