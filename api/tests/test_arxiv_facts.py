@@ -73,6 +73,11 @@ async def test_facts_of_a_paper_with_many_versions(http: MockHTTP) -> None:
     assert facts is not None
     assert facts.source_id == "1706.03762"
     assert facts.title == "Attention Is All You Need"
+    assert facts.authors[:2] == ["Ashish Vaswani", "Noam Shazeer"]
+    assert len(facts.authors) == 8
+    assert facts.abstract is not None
+    assert facts.abstract.startswith("The dominant sequence transduction models")
+    assert facts.primary_category == "cs.CL"
     assert facts.latest_version == 7
     assert len(facts.versions) == 7
     assert facts.withdrawn is False

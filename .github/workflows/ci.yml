@@ -72,7 +72,12 @@ jobs:
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - name: Check the API types match api/openapi.json
+        run: |
+          pnpm gen:api
+          git diff --exit-code src/lib/api/schema.ts
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
+      - run: pnpm test

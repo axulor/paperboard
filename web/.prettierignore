@@ -1,3 +1,7 @@
 pnpm-lock.yaml
 .next/
 next-env.d.ts
+# Generated from api/openapi.json by `pnpm gen:api`.
+src/lib/api/schema.ts
+test-results/
+playwright-report/
