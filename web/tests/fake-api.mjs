@@ -31,12 +31,82 @@ const papers = new Map([
 const notes = new Map([["2401.04088", fixture("notes-2401.04088.json")]]);
 const NO_NOTES = { counts: {}, latest: [], total: 0 };
 
+const moe = {
+  id: 3,
+  title: "Mixture of experts",
+  created_at: "2026-11-27T08:00:00Z",
+  paper_count: 2,
+  papers_with_notes: 1,
+  papers_checked: 1,
+  open_question_count: 1,
+  papers: [
+    {
+      source: "arxiv",
+      source_id: "2401.04088",
+      title: "Mixtral of Experts",
+      notes: 3,
+      checked: true,
+    },
+    {
+      source: "arxiv",
+      source_id: "hep-th/9901001",
+      title: "String Junctions\nfor Arbitrary Lie Algebra Representations",
+      notes: 0,
+      checked: false,
+    },
+  ],
+  open_questions: [
+    {
+      id: 15,
+      source_id: "2401.04088",
+      version: 1,
+      body: "## Assistant: 路由器的负载均衡损失\n用的是什么形式？",
+      published_at: "2026-11-27T10:00:00Z",
+    },
+  ],
+};
+const empty = {
+  ...moe,
+  id: 4,
+  title: "Empty topic",
+  paper_count: 0,
+  papers_with_notes: 0,
+  papers_checked: 0,
+  open_question_count: 0,
+  papers: [],
+  open_questions: [],
+};
+const topics = new Map([
+  [3, moe],
+  [4, empty],
+]);
+
 const PREFIX = "/api/papers/arxiv/";
 const NOTES = "/notes";
 
 const server = createServer((request, response) => {
-  const path = new URL(request.url, "http://localhost").pathname;
+  const url = new URL(request.url, "http://localhost");
+  const path = url.pathname;
   if (path === "/api/health") return send(response, 200, { status: "ok" });
+  if (path === "/api/topics") {
+    const query = (url.searchParams.get("q") ?? "").toLowerCase();
+    if (query === "down")
+      return send(response, 503, { detail: "database unavailable" });
+    const all = [empty, moe];
+    return send(
+      response,
+      200,
+      query ? all.filter((t) => t.title.toLowerCase().includes(query)) : all,
+    );
+  }
+  if (path.startsWith("/api/topics/")) {
+    const id = Number(path.slice("/api/topics/".length));
+    if (id === 503) return send(response, 503, { detail: "unavailable" });
+    const topic = topics.get(id);
+    return topic === undefined
+      ? send(response, 404, { detail: `there is no topic ${id}` })
+      : send(response, 200, topic);
+  }
   if (!path.startsWith(PREFIX))
     return send(response, 404, { detail: "no route" });
   if (path.endsWith(NOTES)) {

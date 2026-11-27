@@ -95,3 +95,8 @@ def test_notes_without_a_database_are_empty(client: TestClient) -> None:
     response = client.get("/api/papers/arxiv/2401.04088/notes")
     assert response.status_code == 200
     assert response.json() == {"counts": {}, "latest": [], "total": 0}
+
+
+def test_topics_without_a_database(client: TestClient) -> None:
+    assert client.get("/api/topics").json() == []
+    assert client.get("/api/topics/1").status_code == 404

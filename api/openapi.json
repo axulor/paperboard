@@ -154,6 +154,128 @@
           }
         }
       }
+    },
+    "/api/topics": {
+      "get": {
+        "tags": [
+          "topics"
+        ],
+        "summary": "Topics like a query, or the newest topics",
+        "operationId": "list_topics_api_topics_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Words to look for in topic titles",
+              "title": "Q"
+            },
+            "description": "Words to look for in topic titles"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "How many topics",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "How many topics"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopicMatch"
+                  },
+                  "title": "Response List Topics Api Topics Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/topics/{topic_id}": {
+      "get": {
+        "tags": [
+          "topics"
+        ],
+        "summary": "One topic: its papers, how many have notes and checked quotes, open questions",
+        "operationId": "get_topic_api_topics__topic_id__get",
+        "parameters": [
+          {
+            "name": "topic_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Topic Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicMatch"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -303,6 +425,40 @@
           "published_at"
         ],
         "title": "NoteSummary"
+      },
+      "OpenQuestion": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source_id",
+          "version",
+          "body",
+          "published_at"
+        ],
+        "title": "OpenQuestion"
       },
       "PaperFacts": {
         "properties": {
@@ -595,6 +751,99 @@
           "status"
         ],
         "title": "StoredQuote"
+      },
+      "TopicMatch": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "paper_count": {
+            "type": "integer",
+            "title": "Paper Count"
+          },
+          "papers_with_notes": {
+            "type": "integer",
+            "title": "Papers With Notes"
+          },
+          "papers_checked": {
+            "type": "integer",
+            "title": "Papers Checked"
+          },
+          "open_question_count": {
+            "type": "integer",
+            "title": "Open Question Count"
+          },
+          "papers": {
+            "items": {
+              "$ref": "#/components/schemas/TopicPaperSummary"
+            },
+            "type": "array",
+            "title": "Papers"
+          },
+          "open_questions": {
+            "items": {
+              "$ref": "#/components/schemas/OpenQuestion"
+            },
+            "type": "array",
+            "title": "Open Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "paper_count",
+          "papers_with_notes",
+          "papers_checked",
+          "open_question_count",
+          "papers",
+          "open_questions"
+        ],
+        "title": "TopicMatch"
+      },
+      "TopicPaperSummary": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "notes": {
+            "type": "integer",
+            "title": "Notes"
+          },
+          "checked": {
+            "type": "boolean",
+            "title": "Checked",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "source_id",
+          "title",
+          "notes"
+        ],
+        "title": "TopicPaperSummary"
       },
       "ValidationError": {
         "properties": {

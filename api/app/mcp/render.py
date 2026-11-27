@@ -199,6 +199,10 @@ def _notes_block(notes: PaperNotes) -> list[str]:
     return lines
 
 
+def _count(number: int, noun: str) -> str:
+    return f"{number} {noun}{'' if number == 1 else 's'}"
+
+
 def render_topics(query: str, matches: list[TopicMatch]) -> str:
     if not matches:
         return (
@@ -213,10 +217,15 @@ def render_topics(query: str, matches: list[TopicMatch]) -> str:
     ]
     for number, match in enumerate(matches, start=1):
         lines.append(f"{number}. Topic #{match.id}: “{untrusted(match.title, TOPIC_CHARS)}”")
+        lines.append(
+            f"   {_count(match.paper_count, 'paper')}: {match.papers_with_notes} with notes, "
+            f"{match.papers_checked} with a quote checked word for word; "
+            f"{_count(match.open_question_count, 'unanswered question')}."
+        )
         if match.papers:
             papers = "; ".join(
                 f"arXiv {p.source_id} {_shorten(p.title, 80)} ({p.notes} "
-                f"note{'s' if p.notes != 1 else ''})"
+                f"note{'s' if p.notes != 1 else ''}{', quote checked' if p.checked else ''})"
                 for p in match.papers
             )
             more = (

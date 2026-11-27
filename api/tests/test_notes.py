@@ -428,3 +428,48 @@ async def test_rest_lists_a_papers_public_notes(
                 "total": 0,
             }
             assert (await client.get("/api/papers/arxiv/nonsense/notes")).status_code == 404
+
+
+async def test_topic_summary_counts_and_rest_routes(
+    http: MockHTTP, paper_requests: Requests, sessions: Sessions, account: int
+) -> None:
+    from fastapi import FastAPI
+
+    from app.core.topics import recent_topics, topic_detail
+    from app.rest.topics import build_router
+
+    async with arxiv_adapter(http) as arxiv:
+        first = await post_note(
+            arxiv, sessions, account, draft(kind="question", quotes=[], new_topic="MoE"), POLICY
+        )
+    topic_id = first.topic_id
+    assert topic_id is not None
+    detail = await topic_detail(sessions, topic_id)
+    assert detail is not None
+    assert (detail.paper_count, detail.papers_with_notes, detail.papers_checked) == (1, 1, 0)
+    assert detail.open_question_count == 1
+    assert not detail.papers[0].checked
+
+    await post(http, sessions, account, topic_id=topic_id)
+    detail = await topic_detail(sessions, topic_id)
+    assert detail is not None and detail.papers_checked == 1 and detail.papers[0].checked
+    assert await topic_detail(sessions, 999) is None
+    async with sessions.begin() as session:
+        from app.db.models import Topic
+
+        session.add(Topic(title="Empty topic"))
+    newest = await recent_topics(sessions)
+    assert [t.title for t in newest] == ["Empty topic", "MoE"]
+    assert newest[0].paper_count == 0 and newest[0].papers == []
+
+    app = FastAPI()
+    app.include_router(build_router(sessions), prefix="/api")
+    transport = httpx2.ASGITransport(app=app)
+    async with httpx2.AsyncClient(transport=transport, base_url="http://test") as client:
+        listed = (await client.get("/api/topics")).json()
+        assert [t["title"] for t in listed] == ["Empty topic", "MoE"]
+        found = (await client.get("/api/topics", params={"q": "moe"})).json()
+        assert [t["id"] for t in found] == [topic_id]
+        one = await client.get(f"/api/topics/{topic_id}")
+        assert one.status_code == 200 and one.json()["papers"][0]["source_id"] == PAPER_ID
+        assert (await client.get("/api/topics/999")).status_code == 404
