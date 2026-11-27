@@ -56,6 +56,26 @@ jobs:
           PAPERBOARD_TEST_DATABASE_URL: postgresql+psycopg://paperboard:paperboard@127.0.0.1:${{ job.services.postgres.ports['5432'] }}/paperboard_test
         run: uv run pytest --cov
 
+  # Builds both images and starts everything with deploy/docker-compose.yml, as on the server.
+  stack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the images and start the services
+        run: docker compose -f deploy/docker-compose.yml up -d --build --wait
+      - name: Check the services through Caddy
+        run: |
+          curl --fail --silent --show-error http://localhost:8080/api/health
+          curl --fail --silent --show-error --output /dev/null http://localhost:8080/
+          curl --fail --silent --show-error http://localhost:8080/mcp \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json, text/event-stream" \
+            -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' \
+            | grep --quiet '"name":"paperboard"'
+      - name: Show the service logs
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml logs
+
   web:
     runs-on: ubuntu-latest
     defaults:

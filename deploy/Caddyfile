@@ -1,0 +1,12 @@
+# One address for everything: the connector and the API go to api, the pages to web.
+# PAPERBOARD_SITE_ADDRESS is ":8080" locally (plain HTTP); set it to the domain on the server and
+# Caddy obtains the HTTPS certificate itself.
+
+{$PAPERBOARD_SITE_ADDRESS::8080} {
+	encode zstd gzip
+
+	@api path /api/* /mcp /mcp/*
+	reverse_proxy @api api:8000
+
+	reverse_proxy web:3000
+}

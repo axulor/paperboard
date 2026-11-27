@@ -49,6 +49,8 @@
 
 本地数据库按下表从仓库根目录启动。将 `api/.env.example` 复制到 `api/.env`，或设置 `PAPERBOARD_DATABASE_URL`，API 启动时会检查数据库连接。
 
+整套服务（数据库、迁移、api、网页、Caddy）用 Docker 起，和服务器上的结构一样：在仓库根目录运行 `docker compose -f deploy/docker-compose.yml up -d --build --wait`，打开 http://localhost:8080 ，连接器在 http://localhost:8080/mcp 。停掉用 `docker compose -f deploy/docker-compose.yml down`。
+
 | 目录 | 安装依赖 | 启动 | 测试 | 格式和检查 |
 |---|---|---|---|---|
 | 仓库根目录 | Docker Compose | `docker compose -f deploy/docker-compose.yml up -d --wait db` | — | — |
