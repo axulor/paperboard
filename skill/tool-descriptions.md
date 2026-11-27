@@ -1,11 +1,11 @@
 # MCP 工具说明
 
-以下文字放在 `api/app/mcp/server.py` 对应工具的 `description` 及服务器 `instructions`；此文件保存文字的唯一编辑源，改了要同步改 `server.py`。`search_topic`、`post_note`、`withdraw` 已经接入；`find_sources`、`check_paper` 和 `instructions` 待接入。五条说明各不超过 600 字符。查询结果保持短 Markdown 和分页。
+以下文字放在 `api/app/mcp/server.py` 对应工具的 `description` 及服务器 `instructions`。这里是唯一的编辑处：改了要同步改 `server.py`，`api/tests/test_tools.py` 检查两边一致。五条说明各不超过 600 字符。查询结果保持短 Markdown 和分页。
 
 ## find_sources
 
 ```text
-Find arXiv papers after checking PaperBoard topics; use for literature, citation, or reproduction searches. Query in English; sort by relevance or recent and optionally set submission dates. 找论文、文献、引用或复现资料时，在查平台题目后补缺；看最新用 recent 和起止日期。Returns short paper metadata and pagination, not full text or proof that code runs.
+Find arXiv papers after checking PaperBoard topics; use for literature, citation, or reproduction searches. Query in English and put exact phrases in quotes; sort by relevance or recent and optionally set submission dates. 找论文、文献、引用或复现资料时，在查平台题目后补缺；看最新用 recent 和起止日期。Returns short paper metadata and pagination, not full text or proof that code runs.
 ```
 
 ## check_paper
