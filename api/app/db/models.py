@@ -60,6 +60,26 @@ class Account(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class ApiToken(Base):
+    """Bearer tokens for the login connector. Only a SHA-256 hash of each token is stored."""
+
+    __tablename__ = "api_tokens"
+    __table_args__ = (
+        UniqueConstraint("token_hash", name="uq_api_tokens_token_hash"),
+        CheckConstraint("token_hash ~ '^[0-9a-f]{64}$'", name="ck_api_tokens_token_hash"),
+        Index("ix_api_tokens_account_id", "account_id"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    account_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("accounts.id", ondelete="CASCADE")
+    )
+    token_hash: Mapped[str] = mapped_column(String(64))
+    label: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class Topic(Base):
     __tablename__ = "topics"
     __table_args__ = (

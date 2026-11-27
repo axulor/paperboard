@@ -1,0 +1,7 @@
+# Example word list for note checks. One entry per line; lines starting with # are ignored.
+# Matching ignores case and full-width/half-width differences. A server sets its own list
+# with PAPERBOARD_BLOCKED_WORDS_FILE.
+代写论文
+论文代发
+加微信
+essay writing service
