@@ -8,6 +8,7 @@ from app.sources.arxiv import API_URL, HTML_URL, PDF_URL, RawFullText
 from app.verify import QuoteError, QuoteStatus, verify_quotes
 from app.verify.fulltext import (
     FullText,
+    Passage,
     PassageKind,
     normalize_text,
     parse_fulltext,
@@ -179,6 +180,74 @@ def test_numbers_must_match(html_doc: FullText) -> None:
     assert check.status is not QuoteStatus.FOUND
 
 
+def paper_saying(*paragraphs: str) -> FullText:
+    return FullText(
+        source="arxiv",
+        source_id="2401.00001",
+        version=1,
+        format="html",
+        url="https://arxiv.org/html/2401.00001v1",
+        passages=[
+            Passage(
+                kind=PassageKind.BODY,
+                location=f"¶{number}",
+                text=text,
+                text_without_citations=text,
+            )
+            for number, text in enumerate(paragraphs, start=1)
+        ],
+    )
+
+
+@pytest.mark.parametrize(
+    ("paper", "quote", "wording"),
+    [
+        (
+            "We observe insignificant improvements over the baseline in all settings.",
+            "significant improvements over the baseline in all settings",
+            "insignificant improvements over the baseline in all settings",
+        ),
+        (
+            "We were unable to reproduce the reported results on the test split.",
+            "able to reproduce the reported results on the test split",
+            "unable to reproduce the reported results on the test split",
+        ),
+        (
+            "The loss is non-convex in the weights of the last layer.",
+            "convex in the weights of the last layer",
+            "non-convex in the weights of the last layer",
+        ),
+        (
+            "Our model reaches 28.4 BLEU on the English-to-German task.",
+            "8.4 BLEU on the English-to-German task",
+            "28.4 BLEU on the English-to-German task",
+        ),
+        (
+            "Training is stable with a learning rate of 0.015 in all runs.",
+            "Training is stable with a learning rate of 0.01",
+            "Training is stable with a learning rate of 0.015",
+        ),
+    ],
+)
+def test_part_of_a_word_or_number_is_not_found(paper: str, quote: str, wording: str) -> None:
+    check = QuoteFinder(paper_saying(paper)).check(quote)
+    assert check.status is QuoteStatus.NEAR
+    assert check.score < 100
+    assert check.matched_text == wording
+
+
+def test_whole_words_are_found_past_a_place_inside_a_word() -> None:
+    paper = paper_saying(
+        "This is insignificant progress on the task.",
+        "Still, significant progress on the task remains possible.",
+    )
+    check = QuoteFinder(paper).check("significant progress on the task")
+    assert check.status is QuoteStatus.FOUND
+    assert check.location == "¶2"
+    assert check.matched_text == "significant progress on the task"
+    assert check.occurrences == 1
+
+
 def test_near_quote_reports_the_papers_own_words(html_doc: FullText) -> None:
     check = QuoteFinder(html_doc).check(
         "We release both Mixtral 8x7B and Mixtral 8x7B Instruct under the Apache 2.0 licence, "
@@ -211,6 +280,19 @@ def test_latex_quote_matches_the_formula(html_doc: FullText) -> None:
 def test_formula_that_is_not_found_is_unverifiable(html_doc: FullText) -> None:
     check = QuoteFinder(html_doc).check(r"$\sum_{j} \alpha_j \beta_j \le \gamma$ holds for every k")
     assert check.status is QuoteStatus.UNVERIFIABLE
+
+
+@pytest.mark.parametrize(
+    "quote",
+    [
+        "The authors admit in section_5 that every number in the table was made up",
+        "We set top_k to 40 and the results did not hold on any of the other datasets",
+        "作者在第五节承认表格里的每一个数字都是自己编出来的x_1",
+    ],
+)
+def test_a_sentence_with_a_formula_mark_is_not_a_formula(html_doc: FullText, quote: str) -> None:
+    check = QuoteFinder(html_doc).check(quote)
+    assert check.status is QuoteStatus.NOT_FOUND
 
 
 def test_quote_must_not_be_too_short(html_doc: FullText) -> None:

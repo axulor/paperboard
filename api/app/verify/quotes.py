@@ -3,10 +3,12 @@
 Text on both sides is reduced to a skeleton: lowercase letters and digits only, with decimal
 points between digits kept so that 28.4 and 284 stay different. Spacing, punctuation,
 line-break hyphens, ligatures and citation markers then no longer matter, but every word and
-number does. A quote is FOUND only if its skeleton occurs in the paper's skeleton.
+number does. A quote is FOUND only if its skeleton occurs in the paper's skeleton and begins and
+ends where words of the paper begin and end: "significant gains" is not found in "insignificant
+gains", nor "8.4 BLEU" in "28.4 BLEU".
 
 If not, the closest passage is reported as NEAR with the paper's own wording, so the agent can
-correct its quote; NEAR is not a match. Quotes that look like formulas and are not found are
+correct its quote; NEAR is not a match. Quotes that are mostly formula and are not found are
 UNVERIFIABLE: formulas cannot be compared reliably as text.
 """
 
@@ -28,6 +30,32 @@ MAX_QUOTE_CHARS = 600
 NEAR_SCORE = 90.0
 
 _MATH_HINT = re.compile(r"[$\\^_{}]|[\u0391-\u03c9\u2200-\u22ff]")
+_MATH_TOKEN = re.compile(r"[$\\^_{}=<>+*/|\d]|[\u0391-\u03c9\u2200-\u22ff]")
+_CJK = "\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af"
+# Words of the quote; text written without spaces counts one character as one word.
+_TOKEN = re.compile(rf"[{_CJK}]|[^\s{_CJK}]+")
+_PUNCTUATION = ".,;:!?()[]\"'-"
+# A variable written as one letter, or punctuation standing alone.
+_SINGLE_LETTER = re.compile(r"[A-Za-z]?")
+# What may stand between two letters of one word: a hyphen, also one that breaks a line, or an
+# apostrophe. "non-significant" and "in- significant" do not contain the word "significant".
+_WORD_JOINT = re.compile(r"-\s?|'")
+
+
+def mostly_formula(text: str) -> bool:
+    """Whether at least half of the quote's words are pieces of a formula.
+
+    One identifier such as top_k in a sentence does not make the sentence a formula.
+    """
+    if not _MATH_HINT.search(text):
+        return False
+    tokens: list[str] = _TOKEN.findall(text)
+    formula = sum(
+        1
+        for token in tokens
+        if _MATH_TOKEN.search(token) or _SINGLE_LETTER.fullmatch(token.strip(_PUNCTUATION))
+    )
+    return 2 * formula >= len(tokens)
 
 
 class QuoteError(ValueError):
@@ -99,6 +127,37 @@ class _Index:
             offset.extend(positions)
         return cls("".join(parts), passage, offset, texts)
 
+    def occurrences(self, needle: str) -> list[int]:
+        """Where `needle` starts in the skeleton, overlapping places included."""
+        starts: list[int] = []
+        at = self.skeleton.find(needle)
+        while at >= 0:
+            starts.append(at)
+            at = self.skeleton.find(needle, at + 1)
+        return starts
+
+    def same_word(self, position: int) -> bool:
+        """Whether skeleton[position - 1] and skeleton[position] are in one word of the paper."""
+        if not 0 < position < len(self.skeleton):
+            return False
+        if self.passage[position - 1] != self.passage[position]:
+            return False
+        text = self.texts[self.passage[position]]
+        between = text[self.offset[position - 1] + 1 : self.offset[position]]
+        return not between or _WORD_JOINT.fullmatch(between) is not None
+
+    def whole_words(self, start: int, end: int) -> bool:
+        """Whether skeleton[start:end] begins and ends where words of the paper do."""
+        return not self.same_word(start) and not self.same_word(end)
+
+    def widen_to_words(self, start: int, end: int) -> tuple[int, int]:
+        """skeleton[start:end] with the words cut at either end completed."""
+        while self.same_word(start):
+            start -= 1
+        while self.same_word(end):
+            end += 1
+        return start, end
+
     def clip_to_main_passage(self, start: int, end: int) -> tuple[int, int]:
         """Narrow skeleton[start:end] to the passage holding most of it.
 
@@ -151,14 +210,26 @@ class QuoteFinder:
             dict.fromkeys([skeleton(text)[0], skeleton(strip_numeric_citations(text))[0]])
         )
 
+        inside_words: tuple[_Index, int, int] | None = None
         for index in self._indexes:
             for needle in variants:
-                start = index.skeleton.find(needle)
-                if start >= 0:
+                starts = index.occurrences(needle)
+                whole = [s for s in starts if index.whole_words(s, s + len(needle))]
+                if whole:
                     return self._result(
-                        quote, QuoteStatus.FOUND, 100.0, index, start, start + len(needle),
-                        occurrences=index.skeleton.count(needle),
+                        quote, QuoteStatus.FOUND, 100.0, index, whole[0], whole[0] + len(needle),
+                        occurrences=len(whole),
                     )  # fmt: skip
+                if starts and inside_words is None:
+                    inside_words = (index, starts[0], starts[0] + len(needle))
+
+        if inside_words is not None:
+            # The letters are there, but only as part of longer words or numbers. Report the
+            # paper's whole words, so the agent sees what it says.
+            index, start, end = inside_words
+            wide_start, wide_end = index.widen_to_words(start, end)
+            score = min(round(100 * (end - start) / (wide_end - wide_start), 1), 99.9)
+            return self._result(quote, QuoteStatus.NEAR, score, index, wide_start, wide_end)
 
         best: tuple[float, _Index, int, int] | None = None
         for index in self._indexes:
@@ -173,7 +244,7 @@ class QuoteFinder:
             start, end = index.clip_to_main_passage(start, end)
             return self._result(quote, QuoteStatus.NEAR, round(score, 1), index, start, end)
 
-        status = QuoteStatus.UNVERIFIABLE if _MATH_HINT.search(text) else QuoteStatus.NOT_FOUND
+        status = QuoteStatus.UNVERIFIABLE if mostly_formula(text) else QuoteStatus.NOT_FOUND
         return QuoteCheck(quote=quote, status=status, score=0.0)
 
     def _result(
