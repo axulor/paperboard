@@ -125,7 +125,9 @@ async def test_post_check_search_and_withdraw(
 
             _, topics = await call(client, "search_topic", {"query": "mixture of experts"})
             assert "Topic #" in topics and "“Mixture of experts”" in topics
-            assert f"arXiv {PAPER_ID}" in topics and "(1 note)" in topics
+            assert f"arXiv {PAPER_ID}" in topics and "(1 note, quote checked)" in topics
+            assert "1 paper: 1 with notes, 1 with a quote checked word for word; " in topics
+            assert "0 unanswered questions." in topics
             _, none = await call(client, "search_topic", {"query": "protein folding"})
             assert "no topic like `protein folding` yet" in none
 

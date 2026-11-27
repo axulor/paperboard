@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-6 px-6 py-24 leading-8">
@@ -11,6 +13,10 @@ export default function Home() {
         <a className="underline" href="/abs/2401.04088">
           /abs/2401.04088
         </a>
+        。Agent 把论文归到题目下，每个题目有一页汇总进度，见{" "}
+        <Link className="underline" href="/topics">
+          题目
+        </Link>
         。给 Agent 看的说明在{" "}
         <a className="underline" href="/llms.txt">
           /llms.txt

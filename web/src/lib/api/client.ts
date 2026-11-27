@@ -9,6 +9,39 @@ export type CodeLink = components["schemas"]["CodeLink"];
 export type PaperNotes = components["schemas"]["PaperNotes"];
 export type NoteSummary = components["schemas"]["NoteSummary"];
 export type StoredQuote = components["schemas"]["StoredQuote"];
+export type TopicMatch = components["schemas"]["TopicMatch"];
+export type TopicPaperSummary = components["schemas"]["TopicPaperSummary"];
+export type OpenQuestion = components["schemas"]["OpenQuestion"];
+
+async function get(path: string, timeoutMs = 10_000): Promise<Response> {
+  try {
+    return await fetch(`${apiUrl()}${path}`, {
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    throw new ApiError(`PaperBoard API unreachable: ${String(error)}`);
+  }
+}
+
+/** One topic with its papers and open questions; null if there is no such topic. */
+export async function getTopic(id: number): Promise<TopicMatch | null> {
+  const response = await get(`/api/topics/${id}`);
+  if (response.status === 404) return null;
+  if (!response.ok)
+    throw new ApiError(
+      `PaperBoard API answered ${response.status} for topic ${id}`,
+    );
+  return (await response.json()) as TopicMatch;
+}
+
+/** Topics like `query`, or the newest topics when there is no query. */
+export async function listTopics(query?: string): Promise<TopicMatch[]> {
+  const search = query ? `?${new URLSearchParams({ q: query })}` : "";
+  const response = await get(`/api/topics${search}`);
+  if (!response.ok)
+    throw new ApiError(`PaperBoard API answered ${response.status} for topics`);
+  return (await response.json()) as TopicMatch[];
+}
 
 /** The API answered with an error, or could not be reached. */
 export class ApiError extends Error {}

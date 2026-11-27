@@ -55,6 +55,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Topics like a query, or the newest topics */
+        get: operations["list_topics_api_topics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/topics/{topic_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One topic: its papers, how many have notes and checked quotes, open questions */
+        get: operations["get_topic_api_topics__topic_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -119,6 +153,22 @@ export interface components {
              * @default []
              */
             quotes: components["schemas"]["StoredQuote"][];
+        };
+        /** OpenQuestion */
+        OpenQuestion: {
+            /** Id */
+            id: number;
+            /** Source Id */
+            source_id: string;
+            /** Version */
+            version: number;
+            /** Body */
+            body: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
         };
         /**
          * PaperFacts
@@ -216,6 +266,46 @@ export interface components {
             location?: string | null;
             /** Anchor */
             anchor?: string | null;
+        };
+        /** TopicMatch */
+        TopicMatch: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Paper Count */
+            paper_count: number;
+            /** Papers With Notes */
+            papers_with_notes: number;
+            /** Papers Checked */
+            papers_checked: number;
+            /** Open Question Count */
+            open_question_count: number;
+            /** Papers */
+            papers: components["schemas"]["TopicPaperSummary"][];
+            /** Open Questions */
+            open_questions: components["schemas"]["OpenQuestion"][];
+        };
+        /** TopicPaperSummary */
+        TopicPaperSummary: {
+            /** Source */
+            source: string;
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Notes */
+            notes: number;
+            /**
+             * Checked
+             * @default false
+             */
+            checked: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -361,6 +451,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    list_topics_api_topics_get: {
+        parameters: {
+            query?: {
+                /** @description Words to look for in topic titles */
+                q?: string | null;
+                /** @description How many topics */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicMatch"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_topic_api_topics__topic_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicMatch"];
+                };
+            };
+            /** @description No such topic */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

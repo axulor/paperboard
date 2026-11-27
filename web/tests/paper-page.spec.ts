@@ -146,6 +146,9 @@ test("llms.txt", async ({ request }) => {
   const response = await request.get("/llms.txt");
   expect(response.status()).toBe(200);
   const text = await response.text();
+  expect(text).toContain("/topics/{id}.md");
+  expect(text).toContain("`search_topic`");
+  expect(text).toContain("`post_note` and `withdraw`");
   expect(text.startsWith("# PaperBoard\n")).toBe(true);
   expect(text).toContain("/abs/2401.04088.md");
   expect(text).toContain("Streamable HTTP");
