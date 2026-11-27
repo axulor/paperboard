@@ -1,11 +1,11 @@
 """Posting, withdrawing and listing notes, against a real PostgreSQL test database."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx2
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.accounts import account_for_token, create_account_with_token, hash_token
@@ -18,10 +18,10 @@ from app.core.notes import (
     post_note,
     withdraw_note,
 )
-from app.core.papers import PAPER_CACHE_TTL
+from app.core.papers import PAPER_CACHE_TTL, check_paper
 from app.core.topics import search_topics
 from app.db.models import ApiToken, Note, NoteQuote, Paper
-from app.sources.arxiv import API_URL, PDF_URL
+from app.sources.arxiv import API_URL, HTML_URL, PDF_URL
 from tests.conftest import FIXTURES, PAPER_ID
 from tests.http_mock import MockHTTP, Route, arxiv_adapter
 
@@ -150,6 +150,45 @@ async def test_version_must_exist(
 ) -> None:
     text = await rejected(http, sessions, account, paper=f"{PAPER_ID}v9")
     assert "versions v1 to v1; there is no v9" in text
+
+
+async def test_a_version_newer_than_the_cached_facts_is_looked_up(
+    http: MockHTTP, paper_requests: Requests, sessions: Sessions, account: int
+) -> None:
+    api = paper_requests[0]
+    async with arxiv_adapter(http) as arxiv:
+        assert await check_paper(arxiv, PAPER_ID, sessions=sessions) is not None
+    # An hour later arXiv has a second version; the cached facts still say v1.
+    async with sessions.begin() as session:
+        await session.execute(
+            update(Paper)
+            .where(Paper.source_id == PAPER_ID)
+            .values(fetched_at=datetime.now(UTC) - timedelta(hours=1))
+        )
+    feed = (FIXTURES / "api_2401.04088.xml").read_bytes()
+    api.mock(
+        return_value=httpx2.Response(200, content=feed.replace(b"2401.04088v1", b"2401.04088v2"))
+    )
+    http.get(HTML_URL.format(f"{PAPER_ID}v2")).mock(
+        return_value=httpx2.Response(
+            200,
+            content=(FIXTURES / "html_2401.04088v1.html").read_bytes(),
+            headers={"content-type": "text/html; charset=utf-8"},
+        )
+    )
+
+    text = await rejected(http, sessions, account, paper=f"{PAPER_ID}v9")
+    assert "versions v1 to v2; there is no v9" in text
+    assert api.call_count == 2
+    # arXiv was asked a moment ago: another made-up version does not reach it again.
+    await rejected(http, sessions, account, paper=f"{PAPER_ID}v9")
+    assert api.call_count == 2
+
+    async with arxiv_adapter(http) as arxiv:
+        posted = await post_note(arxiv, sessions, account, draft(paper=f"{PAPER_ID}v2"), POLICY)
+    assert posted.version == 2
+    assert [quote.status for quote in posted.quotes] == ["found"]
+    assert api.call_count == 2
 
 
 async def test_unknown_paper(http: MockHTTP, sessions: Sessions, account: int) -> None:
