@@ -31,6 +31,12 @@ async def test_search_recent_papers() -> None:
     assert all(r.published.date() >= date(2025, 1, 1) for r in result.records)
 
 
+async def test_search_with_stopwords() -> None:
+    async with ArxivAdapter() as arxiv:
+        result = await arxiv.search(SearchQuery(text="synchronization of coupled oscillators"))
+    assert result.total > 100
+
+
 async def test_facts_of_a_real_paper() -> None:
     async with ArxivAdapter() as arxiv:
         facts = await arxiv.facts("1706.03762")

@@ -65,6 +65,12 @@ def test_arxiv_id_str_round_trips() -> None:
         ("sparse AND attention OR (x)", "all:sparse AND all:attention AND all:x"),
         ("low-rank all:hack", "all:low-rank AND all:all AND all:hack"),
         ('"and" or', "all:and"),
+        (
+            "Synchronization of coupled oscillators with delay",
+            "all:synchronization AND all:coupled AND all:oscillators AND all:delay",
+        ),
+        ('"theory of mind" in the models', 'all:"theory of mind" AND all:models'),
+        ('"the" transformer', "all:the AND all:transformer"),
     ],
 )
 def test_build_search_query(text: str, expected: str) -> None:
@@ -83,6 +89,8 @@ def test_build_search_query_with_dates() -> None:
 def test_build_search_query_needs_a_term() -> None:
     with pytest.raises(SourceQueryError):
         build_search_query(SearchQuery(text="() AND"))
+    with pytest.raises(SourceQueryError):
+        build_search_query(SearchQuery(text="of the"))
 
 
 @pytest.mark.anyio
