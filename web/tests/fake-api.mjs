@@ -88,6 +88,13 @@ const server = createServer((request, response) => {
   const url = new URL(request.url, "http://localhost");
   const path = url.pathname;
   if (path === "/api/health") return send(response, 200, { status: "ok" });
+  if (request.method === "POST" && /^\/api\/notes\/\d+\/reports$/.test(path)) {
+    const id = Number(path.split("/")[3]);
+    if (id === 503) return send(response, 503, { detail: "unavailable" });
+    return [12, 13, 14].includes(id)
+      ? send(response, 201, { id: 1 })
+      : send(response, 404, { detail: `there is no public note ${id}` });
+  }
   if (path === "/api/sitemap")
     return send(response, 200, {
       papers: [

@@ -91,3 +91,30 @@ export async function getSitemap(): Promise<Sitemap> {
     );
   return (await response.json()) as Sitemap;
 }
+
+export type ReportReason = components["schemas"]["ReportIn"]["reason"];
+
+/** Report a note; false if there is no such public note. */
+export async function reportNote(
+  id: number,
+  reason: ReportReason,
+  detail: string,
+): Promise<boolean> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl()}/api/notes/${id}/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason, detail }),
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (error) {
+    throw new ApiError(`PaperBoard API unreachable: ${String(error)}`);
+  }
+  if (response.status === 404) return false;
+  if (!response.ok)
+    throw new ApiError(
+      `PaperBoard API answered ${response.status} for a report`,
+    );
+  return true;
+}

@@ -13,12 +13,14 @@ export const NO_OPEN_QUESTIONS = "目前没有待回答的问题。";
 
 const MAX_TOPIC_ID = 2 ** 53 - 1;
 
-/** The topic id in a path segment, or null if it is not one. */
-export function parseTopicId(segment: string): number | null {
+/** A topic or note id (a positive whole number) in a path segment or form field, or null. */
+export function parseId(segment: string): number | null {
   if (!/^[1-9]\d{0,15}$/.test(segment)) return null;
   const id = Number(segment);
   return id <= MAX_TOPIC_ID ? id : null;
 }
+
+export const parseTopicId = parseId;
 
 export function topicTitle(topic: TopicMatch): string {
   return plainLine(topic.title) || `题目 #${topic.id}`;

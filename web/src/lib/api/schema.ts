@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/notes/{note_id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report a note that breaks the rules */
+        post: operations["post_report_api_notes__note_id__reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -269,6 +286,24 @@ export interface components {
         Problem: {
             /** Detail */
             detail: string;
+        };
+        /** ReportIn */
+        ReportIn: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "spam" | "illegal" | "privacy" | "misleading" | "other";
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+        };
+        /** ReportOut */
+        ReportOut: {
+            /** Id */
+            id: number;
         };
         /** Sitemap */
         Sitemap: {
@@ -591,6 +626,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Sitemap"];
+                };
+            };
+        };
+    };
+    post_report_api_notes__note_id__reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                note_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description No such public note */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description The database is not available */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
         };
