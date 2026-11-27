@@ -12,7 +12,7 @@ from app.core.moderation import WordList
 from app.core.notes import NotePolicy
 from app.mcp.auth import AccountTokenVerifier
 from app.mcp.server import LOGIN_PATH, Login, build_mcp_app, build_mcp_server
-from app.rest import health, papers, topics
+from app.rest import health, papers, site, topics
 from app.sources import ArxivAdapter
 
 
@@ -70,6 +70,7 @@ def create_app(
     app.include_router(health.router, prefix="/api")
     app.include_router(papers.build_router(arxiv, sessions=sessions), prefix="/api")
     app.include_router(topics.build_router(sessions), prefix="/api")
+    app.include_router(site.build_router(sessions), prefix="/api")
     # Mounted last at the root so it only receives what the REST routes did not match: /mcp
     # for everyone, /mcp/login for logged-in agents.
     app.mount("/", connector)

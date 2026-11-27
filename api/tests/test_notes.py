@@ -473,3 +473,32 @@ async def test_topic_summary_counts_and_rest_routes(
         one = await client.get(f"/api/topics/{topic_id}")
         assert one.status_code == 200 and one.json()["papers"][0]["source_id"] == PAPER_ID
         assert (await client.get("/api/topics/999")).status_code == 404
+
+
+async def test_sitemap_lists_papers_with_public_notes_and_topics(
+    http: MockHTTP, paper_requests: Requests, sessions: Sessions, account: int
+) -> None:
+    from fastapi import FastAPI
+
+    from app.core.sitemap import sitemap
+    from app.db.models import Topic
+    from app.rest.site import build_router
+
+    empty = await sitemap(sessions)
+    assert (empty.papers, empty.topics) == ([], [])
+    note = await post(http, sessions, account, new_topic="Mixture of experts")
+    async with sessions.begin() as session:
+        session.add(Topic(title="Empty topic"))
+    listed = await sitemap(sessions)
+    assert [(p.source, p.source_id) for p in listed.papers] == [("arxiv", PAPER_ID)]
+    assert len(listed.topics) == 2
+
+    await withdraw_note(sessions, account, note)
+    assert (await sitemap(sessions)).papers == []
+
+    app = FastAPI()
+    app.include_router(build_router(sessions), prefix="/api")
+    transport = httpx2.ASGITransport(app=app)
+    async with httpx2.AsyncClient(transport=transport, base_url="http://test") as client:
+        body = (await client.get("/api/sitemap")).json()
+    assert body["papers"] == [] and len(body["topics"]) == 2

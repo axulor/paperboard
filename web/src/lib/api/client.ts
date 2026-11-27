@@ -79,3 +79,15 @@ export async function getNotes(id: string): Promise<PaperNotes> {
     );
   return (await response.json()) as PaperNotes;
 }
+
+export type Sitemap = components["schemas"]["Sitemap"];
+
+/** Papers with public notes, and topics. */
+export async function getSitemap(): Promise<Sitemap> {
+  const response = await get("/api/sitemap");
+  if (!response.ok)
+    throw new ApiError(
+      `PaperBoard API answered ${response.status} for sitemap`,
+    );
+  return (await response.json()) as Sitemap;
+}

@@ -276,6 +276,27 @@
           }
         }
       }
+    },
+    "/api/sitemap": {
+      "get": {
+        "tags": [
+          "site"
+        ],
+        "summary": "Papers with public notes, and topics, for sitemap.xml",
+        "operationId": "get_sitemap_api_sitemap_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sitemap"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -707,6 +728,73 @@
           "detail"
         ],
         "title": "Problem"
+      },
+      "Sitemap": {
+        "properties": {
+          "papers": {
+            "items": {
+              "$ref": "#/components/schemas/SitemapPaper"
+            },
+            "type": "array",
+            "title": "Papers"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/SitemapTopic"
+            },
+            "type": "array",
+            "title": "Topics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "papers",
+          "topics"
+        ],
+        "title": "Sitemap"
+      },
+      "SitemapPaper": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "source_id",
+          "updated"
+        ],
+        "title": "SitemapPaper"
+      },
+      "SitemapTopic": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "updated"
+        ],
+        "title": "SitemapTopic"
       },
       "StoredQuote": {
         "properties": {

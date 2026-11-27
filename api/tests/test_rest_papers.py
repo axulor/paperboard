@@ -100,3 +100,7 @@ def test_notes_without_a_database_are_empty(client: TestClient) -> None:
 def test_topics_without_a_database(client: TestClient) -> None:
     assert client.get("/api/topics").json() == []
     assert client.get("/api/topics/1").status_code == 404
+
+
+def test_sitemap_without_a_database(client: TestClient) -> None:
+    assert client.get("/api/sitemap").json() == {"papers": [], "topics": []}
