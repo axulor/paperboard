@@ -68,6 +68,12 @@ _CC_LICENSE = re.compile(r"creativecommons\.org/licenses/([a-z-]+)/(\d\.\d)", re
 _TOKEN_RE = re.compile(r'"([^"]+)"|(\S+)')
 _UNSAFE_CHARS = re.compile(r"[^\w.+-]")
 _OPERATORS = {"and", "or", "not", "andnot"}
+# arXiv's index leaves these words out, so requiring one (AND) empties or shrinks the results.
+_STOPWORDS = {
+    *("a", "an", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it"),
+    *("no", "of", "on", "such", "that", "the", "their", "then", "there", "these", "they"),
+    *("this", "to", "was", "will", "with"),
+}
 
 
 @dataclass(frozen=True)
@@ -118,7 +124,7 @@ def build_search_query(query: SearchQuery) -> str:
 
     Quoted phrases stay together. Characters with a meaning in arXiv's query syntax are removed,
     and boolean operators typed as words are dropped, so user text cannot change the query's
-    structure.
+    structure. Unquoted English stopwords are dropped too.
     """
     parts: list[str] = []
     for phrase, word in _TOKEN_RE.findall(query.text):
@@ -129,7 +135,7 @@ def build_search_query(query: SearchQuery) -> str:
             continue
         for piece in _clean(word).split():
             piece = piece.strip(".+-")
-            if piece and piece not in _OPERATORS:
+            if piece and piece not in _OPERATORS and piece not in _STOPWORDS:
                 parts.append(f"all:{piece}")
     if not parts:
         raise SourceQueryError(f"no searchable terms in {query.text!r}")
