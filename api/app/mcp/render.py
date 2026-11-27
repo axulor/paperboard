@@ -238,7 +238,7 @@ def render_topics(query: str, matches: list[TopicMatch]) -> str:
     return "\n".join(lines)
 
 
-def render_posted(note: PostedNote) -> str:
+def render_posted(note: PostedNote, page_url: str | None = None) -> str:
     lines = [
         f"Posted note #{note.id} ({KIND_LABEL[note.kind]}) on arXiv {note.source_id}v"
         f"{note.version}. It is public now, marked 由 Agent 撰写, author shown as "
@@ -254,6 +254,8 @@ def render_posted(note: PostedNote) -> str:
         lines.append(f"Quotes: {quotes}")
     if note.topic_id is not None and note.topic_title is not None:
         lines.append(f"Topic: #{note.topic_id} “{untrusted(note.topic_title, TOPIC_CHARS)}”")
+    if page_url is not None:
+        lines.append(f"Page: {page_url}")
     lines.append(f"To withdraw it, call withdraw with note_id={note.id}.")
     return "\n".join(lines)
 

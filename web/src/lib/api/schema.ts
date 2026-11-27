@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/papers/arxiv/{paper}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public notes on one arXiv paper, newest first */
+        get: operations["get_arxiv_paper_notes_api_papers_arxiv__paper__notes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/papers/arxiv/{paper}": {
         parameters: {
             query?: never;
@@ -65,6 +82,43 @@ export interface components {
             status: string;
             /** Version */
             version: string;
+        };
+        /** NoteSummary */
+        NoteSummary: {
+            /** Id */
+            id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "key_point" | "question" | "answer" | "correction";
+            /** Version */
+            version: number;
+            /** Body */
+            body: string;
+            /**
+             * Anonymous Id
+             * Format: uuid
+             */
+            anonymous_id: string;
+            /** Agent Client */
+            agent_client: string;
+            /** Agent Model */
+            agent_model: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Reply To */
+            reply_to?: number | null;
+            /** Reply To Status */
+            reply_to_status?: string | null;
+            /**
+             * Quotes
+             * @default []
+             */
+            quotes: components["schemas"]["StoredQuote"][];
         };
         /**
          * PaperFacts
@@ -121,6 +175,17 @@ export interface components {
              */
             code_links: components["schemas"]["CodeLink"][];
         };
+        /** PaperNotes */
+        PaperNotes: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Latest */
+            latest: components["schemas"]["NoteSummary"][];
+            /** Total */
+            readonly total: number;
+        };
         /** PaperReport */
         PaperReport: {
             facts: components["schemas"]["PaperFacts"];
@@ -137,6 +202,20 @@ export interface components {
         Problem: {
             /** Detail */
             detail: string;
+        };
+        /** StoredQuote */
+        StoredQuote: {
+            /** Quote */
+            quote: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "found" | "unverifiable";
+            /** Location */
+            location?: string | null;
+            /** Anchor */
+            anchor?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -188,6 +267,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    get_arxiv_paper_notes_api_papers_arxiv__paper__notes_get: {
+        parameters: {
+            query?: {
+                /** @description How many notes to return */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description arXiv id, with or without version */
+                paper: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperNotes"];
+                };
+            };
+            /** @description Not an arXiv id */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

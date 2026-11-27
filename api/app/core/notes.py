@@ -11,7 +11,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -106,7 +106,9 @@ class PaperNotes(BaseModel):
     counts: dict[NoteKind, int]
     """Public notes on the paper, by kind."""
     latest: list[NoteSummary]
+    """Newest first."""
 
+    @computed_field
     @property
     def total(self) -> int:
         return sum(self.counts.values())

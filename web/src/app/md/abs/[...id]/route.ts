@@ -3,7 +3,7 @@
 
 import type { NextRequest } from "next/server";
 
-import { ApiError, getPaper } from "@/lib/api/client";
+import { ApiError, getNotes, getPaper } from "@/lib/api/client";
 import { idFromSegments, parseArxivId } from "@/lib/arxiv";
 import { siteUrl } from "@/lib/config";
 import { paperMarkdown } from "@/lib/paper";
@@ -31,9 +31,13 @@ export async function GET(
   }
   if (report === null)
     return markdown(404, `# arXiv 上没有这篇论文\n\n${id.base}\n`);
+  const notes = await getNotes(id.base).catch((error: unknown) => {
+    if (error instanceof ApiError) return null;
+    throw error;
+  });
   return markdown(
     200,
-    paperMarkdown(report, `${siteUrl()}/abs/${report.facts.source_id}`),
+    paperMarkdown(report, `${siteUrl()}/abs/${report.facts.source_id}`, notes),
   );
 }
 

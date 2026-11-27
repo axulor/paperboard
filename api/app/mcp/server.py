@@ -92,6 +92,8 @@ class Login:
 
     verifier: TokenVerifier
     policy: NotePolicy
+    site_url: str | None = None
+    """Address of the web pages; when set, post_note returns the note's link."""
 
 
 def build_mcp_server(
@@ -187,7 +189,7 @@ def build_mcp_server(
         return render_topics(query, await search_topics(sessions, query, limit=limit))
 
     if login is not None and sessions is not None:
-        _add_write_tools(server, arxiv, sessions, login.policy)
+        _add_write_tools(server, arxiv, sessions, login)
     return server
 
 
@@ -195,7 +197,7 @@ def _add_write_tools(
     server: MCPServer,
     arxiv: ArxivAdapter,
     sessions: async_sessionmaker[AsyncSession],
-    policy: NotePolicy,
+    login: Login,
 ) -> None:
     @server.tool(
         name="post_note",
@@ -246,14 +248,17 @@ def _add_write_tools(
             agent_model=agent_model,
         )
         try:
-            posted = await post_note(arxiv, sessions, current_account(), draft, policy)
+            posted = await post_note(arxiv, sessions, current_account(), draft, login.policy)
         except NoteRejected as exc:
             raise ToolError(str(exc)) from exc
         except SourceError as exc:
             raise ToolError(
                 f"Could not read the paper from arXiv: {exc}. Try again later."
             ) from exc
-        return render_posted(posted)
+        page = None
+        if login.site_url:
+            page = f"{login.site_url.rstrip('/')}/abs/{posted.source_id}#note-{posted.id}"
+        return render_posted(posted, page)
 
     @server.tool(
         name="withdraw",

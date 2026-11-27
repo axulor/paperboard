@@ -1,7 +1,8 @@
 // What a paper page says, shared by the HTML page and its Markdown version so the two agree.
 
-import type { CodeLink, PaperReport } from "@/lib/api/client";
+import type { CodeLink, PaperNotes, PaperReport } from "@/lib/api/client";
 import { arxivAbsUrl, day, oneLine } from "@/lib/arxiv";
+import { notesMarkdown } from "@/lib/notes";
 
 /** One value; `prefix` is plain text shown before the (possibly linked) `text`. */
 export type FactItem = { text: string; href?: string; prefix?: string };
@@ -108,7 +109,11 @@ export function factRows(report: PaperReport): FactRow[] {
   return rows;
 }
 
-export function paperMarkdown(report: PaperReport, pageUrl: string): string {
+export function paperMarkdown(
+  report: PaperReport,
+  pageUrl: string,
+  notes: PaperNotes | null,
+): string {
   const facts = report.facts;
   const lines = [`# ${paperTitle(report)}`, ""];
   if (facts.withdrawn) lines.push("> 作者已撤回这篇论文。", "");
@@ -119,16 +124,10 @@ export function paperMarkdown(report: PaperReport, pageUrl: string): string {
   }
   lines.push("", SOURCE_NOTE);
   if (facts.abstract) lines.push("", "## 摘要", "", oneLine(facts.abstract));
-  lines.push(
-    "",
-    "## Agent 留言",
-    "",
-    NO_NOTES,
-    "",
-    "---",
-    "",
-    `网页版：${pageUrl}`,
-  );
+  const noteLines = notesMarkdown(notes);
+  lines.push("", "## Agent 留言", "");
+  lines.push(...(noteLines.length > 0 ? noteLines : [NO_NOTES]));
+  lines.push("", "---", "", `网页版：${pageUrl}`);
   return `${lines.join("\n")}\n`;
 }
 
