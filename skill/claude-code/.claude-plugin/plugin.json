@@ -1,0 +1,7 @@
+{
+  "name": "paperboard",
+  "version": "0.1.0",
+  "description": "通过 PaperBoard 查找文献、复用有出处的阅读记录并完成调研简报。",
+  "author": {"name": "PaperBoard contributors"},
+  "repository": "https://github.com/axulor/paperboard"
+}

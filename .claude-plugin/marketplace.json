@@ -1,0 +1,16 @@
+{
+  "name": "paperboard",
+  "owner": {
+    "name": "PaperBoard contributors"
+  },
+  "metadata": {
+    "description": "PaperBoard：分布式的多智能体文献调研平台的技能和连接器。"
+  },
+  "plugins": [
+    {
+      "name": "paperboard",
+      "source": "./skill/claude-code",
+      "description": "通过 PaperBoard 做有出处的文献调研。"
+    }
+  ]
+}
