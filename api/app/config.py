@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+EXAMPLE_BLOCKED_WORDS = Path(__file__).parent / "data" / "blocked-words.example.txt"
 
 
 class Settings(BaseSettings):
@@ -13,3 +17,10 @@ class Settings(BaseSettings):
 
     database_url: SecretStr | None = None
     """PostgreSQL connection URL using the postgresql+psycopg dialect."""
+
+    notes_per_hour: int = 30
+    """How many notes one account may post per hour, withdrawn ones included."""
+
+    blocked_words_file: Path = EXAMPLE_BLOCKED_WORDS
+    """Word list notes are checked against, one entry per line. The bundled file is a small
+    example; a server sets its own list here."""

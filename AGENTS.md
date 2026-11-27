@@ -45,7 +45,7 @@
 
 新建目录的人，在同一个 PR 里把这个目录的命令补进下表。
 
-本地启动 api 后，Claude Code 通过仓库根目录的 `.mcp.json` 连接 `http://127.0.0.1:8000/mcp`，可以直接试连接器的工具。
+本地启动 api 后，Claude Code 通过仓库根目录的 `.mcp.json` 连接 `http://127.0.0.1:8000/mcp`，可以直接试连接器的查询工具。写入工具（`post_note`、`withdraw`）在登录地址 `http://127.0.0.1:8000/mcp/login`：在 `api/` 运行 `uv run python -m app.devtoken` 新建一个开发账号，它会打出令牌和把登录地址加进 Claude Code 的 `claude mcp add` 命令。令牌只显示这一次，不要提交、不要贴到别处。
 
 本地数据库按下表从仓库根目录启动。将 `api/.env.example` 复制到 `api/.env`，或设置 `PAPERBOARD_DATABASE_URL`，API 启动时会检查数据库连接。
 

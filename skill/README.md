@@ -4,11 +4,11 @@
 
 ## 文件与单一来源
 
-技能正文只维护在 `claude-code/skills/paperboard/SKILL.md`，条件性留言规则放在同目录的 `references/`。Claude Code 插件完全自包含；Codex 通过符号链接使用同一个目录，不另维护正文副本。`tool-descriptions.md` 存五个工具和 MCP `instructions` 的文字，等 #9 合并后再接入后端。仓库根目录的 `.claude-plugin/marketplace.json` 把插件指向 `./skill/claude-code`。
+技能正文只维护在 `claude-code/skills/paperboard/SKILL.md`，条件性留言规则放在同目录的 `references/`。Claude Code 插件完全自包含；Codex 通过符号链接使用同一个目录，不另维护正文副本。`tool-descriptions.md` 存五个工具和 MCP `instructions` 的文字，和 `api/app/mcp/server.py` 保持一致。仓库根目录的 `.claude-plugin/marketplace.json` 把插件指向 `./skill/claude-code`。
 
 ## 本地前提
 
-API 和数据库的启动、迁移命令见仓库根目录 `AGENTS.md`。免登录端点是 `http://127.0.0.1:8000/mcp`。当前 `main` 只有 `find_sources`、`check_paper`；`search_topic`、写入工具和开发令牌命令由 #9 提供。缺少这些功能时只能检查包和请求集，不能宣称完整调研验收通过。
+API 和数据库的启动、迁移命令见仓库根目录 `AGENTS.md`。免登录端点是 `http://127.0.0.1:8000/mcp`，有 `find_sources`、`check_paper`、`search_topic`；登录端点是 `http://127.0.0.1:8000/mcp/login`，另有 `post_note`、`withdraw`。
 
 以下命令除特别标注外，在仓库根目录执行。检查和测试脚本只用 Python 标准库。Windows 上把命令里的 `python3` 换成 `python`。
 
@@ -28,14 +28,14 @@ claude plugin validate ./skill/claude-code
 /plugin install paperboard@paperboard
 ```
 
-插件默认只连接免登录端点，无令牌占位符。不要在插件中写 `${PAPERBOARD_TOKEN}`，也不要提交真实令牌。#9 合并后，按其最终命令生成本地开发令牌；在仓库外的独立测试目录手动添加登录连接。下面的地址变量必须替换成 #9 实际实现的地址，不把 `/mcp/login` 当作既定接口：
+插件默认只连接免登录端点，无令牌占位符。不要在插件中写 `${PAPERBOARD_TOKEN}`，也不要提交真实令牌。要留言时，在 `api/` 运行 `uv run python -m app.devtoken` 新建开发账号。它打出令牌和下面这条命令，在仓库外的独立测试目录运行：
 
 ```sh
-claude mcp add --transport http paperboard-login "$PAPERBOARD_LOGIN_URL" \
-  --header "Authorization: Bearer $PAPERBOARD_TOKEN"
+claude mcp add --transport http paperboard-login http://127.0.0.1:8000/mcp/login \
+  --header "Authorization: Bearer <令牌>"
 ```
 
-先在自己的终端设置这两个变量，不在聊天、截图、测试结果或提交中公开令牌。完整调研使用这个登录连接；120 条只读路由测试保持免登录配置。OAuth 在后续阶段接入后再更新插件。
+不在聊天、截图、测试结果或提交中公开令牌。完整调研使用这个登录连接；120 条只读路由测试保持免登录配置。OAuth 在后续阶段接入后再更新插件。
 
 ## Codex
 
@@ -73,7 +73,7 @@ python3 -m unittest discover -s skill/tests -v
 
 请求集在 `evals/requests.json`，包含五类各 20 条，以及中英文各 10 条负例。题目型请求首工具是 `search_topic`；只有编号或链接的单篇请求首工具为 `check_paper`，识别标题后再查题目。负例不应调用技能或任何 PaperBoard 工具。看最新默认最近 12 个月，需按时间查并在开头写明范围。
 
-真实测试不进 CI，需要操作者已登录的 Claude Code、可用模型额度，以及包含 #9 查询工具的本地 API。先只跑第一条，确认环境；再跑全部：
+真实测试不进 CI，需要操作者已登录的 Claude Code、可用模型额度，以及本地 API。先只跑第一条，确认环境；再跑全部：
 
 ```sh
 python3 skill/scripts/run_evals.py --pilot

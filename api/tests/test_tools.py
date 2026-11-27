@@ -33,7 +33,7 @@ async def call(http: MockHTTP, tool: str, arguments: dict[str, Any]) -> tuple[bo
 async def test_tools_are_listed_as_read_only(http: MockHTTP) -> None:
     async with arxiv_adapter(http) as arxiv, Client(build_mcp_server(arxiv)) as client:
         tools = {tool.name: tool for tool in (await client.list_tools()).tools}
-    assert set(tools) == {"find_sources", "check_paper"}
+    assert set(tools) == {"find_sources", "check_paper", "search_topic"}
     for tool in tools.values():
         assert tool.annotations is not None and tool.annotations.read_only_hint
         assert tool.description is not None

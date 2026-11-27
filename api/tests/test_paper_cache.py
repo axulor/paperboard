@@ -1,7 +1,3 @@
-import asyncio
-import os
-import sys
-from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -9,65 +5,18 @@ import httpx2
 import pytest
 from mcp import Client
 from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.papers import check_paper
 from app.db.models import Paper
 from app.mcp.server import build_mcp_server
-from app.sources.arxiv import API_URL, HTML_URL, OAI_URL, PDF_URL
+from app.sources.arxiv import HTML_URL, PDF_URL
 from tests.http_mock import MockHTTP, Route, arxiv_adapter
 
 PAPER_ID = "2401.04088"
 PAPER_HTML_URL = HTML_URL.format(f"{PAPER_ID}v1")
 FIXTURES = Path(__file__).parent / "fixtures" / "arxiv"
 pytestmark = pytest.mark.anyio
-
-
-@pytest.fixture
-def anyio_backend() -> str | tuple[str, dict[str, object]]:
-    if sys.platform == "win32":
-        return "asyncio", {"loop_factory": asyncio.SelectorEventLoop}
-    return "asyncio"
-
-
-@pytest.fixture
-async def sessions() -> AsyncIterator[async_sessionmaker[AsyncSession]]:
-    url = os.environ.get("PAPERBOARD_TEST_DATABASE_URL")
-    if not url:
-        pytest.skip("PAPERBOARD_TEST_DATABASE_URL is not set")
-    engine = create_async_engine(url)
-    try:
-        async with engine.connect() as connection:
-            transaction = await connection.begin()
-            try:
-                yield async_sessionmaker(connection, join_transaction_mode="create_savepoint")
-            finally:
-                await transaction.rollback()
-    finally:
-        await engine.dispose()
-
-
-@pytest.fixture
-def paper_requests(http: MockHTTP) -> tuple[Route, Route, Route]:
-    return (
-        http.get(API_URL).mock(
-            return_value=httpx2.Response(
-                200, content=(FIXTURES / "api_2401.04088.xml").read_bytes()
-            )
-        ),
-        http.get(OAI_URL).mock(
-            return_value=httpx2.Response(
-                200, content=(FIXTURES / "oai_2401.04088.xml").read_bytes()
-            )
-        ),
-        http.get(PAPER_HTML_URL).mock(
-            return_value=httpx2.Response(
-                200,
-                content=(FIXTURES / "html_2401.04088v1.html").read_bytes(),
-                headers={"content-type": "text/html; charset=utf-8"},
-            ),
-        ),
-    )
 
 
 async def test_check_paper_reuses_report_for_versioned_url(
