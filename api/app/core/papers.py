@@ -38,18 +38,20 @@ async def check_paper(
     *,
     scan_full_text: bool = True,
     sessions: async_sessionmaker[AsyncSession] | None = None,
+    max_age: timedelta = PAPER_CACHE_TTL,
 ) -> PaperReport | None:
     """Facts about a paper; None if arXiv does not know it.
 
     With `scan_full_text`, the latest version is downloaded once to look for code links
     that only appear in the body. Withdrawn papers are not scanned: their latest version is a
-    withdrawal notice. The cache stores complete reports.
+    withdrawal notice. The cache stores complete reports; one older than `max_age` is fetched
+    again.
     """
     if sessions is None or not scan_full_text:
         return await _fetch_paper(arxiv, paper, scan_full_text=scan_full_text)
 
     source_id = parse_arxiv_id(paper).base
-    cached = await _read_cached_report(sessions, arxiv.name, source_id)
+    cached = await _read_cached_report(sessions, arxiv.name, source_id, max_age)
     if cached is not None:
         return cached
 
@@ -62,14 +64,14 @@ async def check_paper(
 
 
 async def _read_cached_report(
-    sessions: async_sessionmaker[AsyncSession], source: str, source_id: str
+    sessions: async_sessionmaker[AsyncSession], source: str, source_id: str, max_age: timedelta
 ) -> PaperReport | None:
     async with sessions() as session:
         row = await session.scalar(
             select(Paper).where(
                 Paper.source == source,
                 Paper.source_id == source_id,
-                Paper.fetched_at > datetime.now(UTC) - PAPER_CACHE_TTL,
+                Paper.fetched_at > datetime.now(UTC) - max_age,
             )
         )
         return _report_from_row(row) if row is not None else None

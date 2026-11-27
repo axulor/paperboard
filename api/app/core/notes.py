@@ -35,6 +35,9 @@ MAX_AGENT_FIELD_CHARS = 100
 MIN_TOPIC_TITLE_CHARS = 2
 MAX_TOPIC_TITLE_CHARS = 200
 RATE_WINDOW = timedelta(hours=1)
+NEW_VERSION_RECHECK = timedelta(minutes=5)
+"""A note about a version newer than the cached facts know makes arXiv be asked again, unless
+it was asked this recently: a made-up version number costs at most one request per paper."""
 # Paper rows made here hold facts only. Dating them long ago makes check_paper treat them as
 # expired, so the next call fetches and caches the complete report in place.
 _EXPIRED = datetime(1970, 1, 1, tzinfo=UTC)
@@ -142,6 +145,11 @@ async def post_note(
         await _check_context(session, account_id, arxiv.name, paper.base, draft, policy)
 
     report = await check_paper(arxiv, paper.base, sessions=sessions)
+    if report is not None and version > report.facts.latest_version:
+        # The cached facts may be from before this version was submitted.
+        report = await check_paper(
+            arxiv, paper.base, sessions=sessions, max_age=NEW_VERSION_RECHECK
+        )
     if report is None:
         raise NoteRejected(f"arXiv has no paper {paper.base}.")
     latest = report.facts.latest_version
