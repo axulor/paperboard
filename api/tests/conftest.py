@@ -34,7 +34,8 @@ async def sessions() -> AsyncIterator[async_sessionmaker[AsyncSession]]:
     url = os.environ.get("PAPERBOARD_TEST_DATABASE_URL")
     if not url:
         pytest.skip("PAPERBOARD_TEST_DATABASE_URL is not set")
-    engine = create_async_engine(url)
+    # Fail fast instead of hanging when the test database is not running.
+    engine = create_async_engine(url, connect_args={"connect_timeout": 5})
     try:
         async with engine.connect() as connection:
             transaction = await connection.begin()

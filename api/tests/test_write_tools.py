@@ -205,20 +205,6 @@ async def test_without_a_database(http: MockHTTP) -> None:
             build_mcp_server(arxiv, login=Login(verifier=OneTokenVerifier(1), policy=POLICY))
 
 
-def test_descriptions_match_the_skill_text() -> None:
-    """skill/tool-descriptions.md is where the wording is edited."""
-    import re
-    from pathlib import Path
-
-    from app.mcp.server import POST_NOTE, SEARCH_TOPIC, WITHDRAW_NOTE
-
-    text = (Path(__file__).parents[2] / "skill" / "tool-descriptions.md").read_text("utf-8")
-    blocks = dict(re.findall(r"## (\w+)\n\n```text\n(.*?)\n```", text, re.DOTALL))
-    assert blocks["search_topic"] == SEARCH_TOPIC
-    assert blocks["post_note"] == POST_NOTE
-    assert blocks["withdraw"] == WITHDRAW_NOTE
-
-
 async def test_posting_returns_the_notes_page_when_the_site_is_known(
     http: MockHTTP, paper_requests: Requests, sessions: Sessions, account: int
 ) -> None:

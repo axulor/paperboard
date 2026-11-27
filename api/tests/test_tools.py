@@ -137,3 +137,35 @@ async def test_check_paper_errors(http: MockHTTP, paper: str, message: str) -> N
     is_error, text = await call(http, "check_paper", {"paper": paper})
     assert is_error
     assert message in text
+
+
+def test_descriptions_and_instructions_match_the_skill_text() -> None:
+    """skill/tool-descriptions.md is where the wording is edited."""
+    import re
+
+    from app.mcp import server
+
+    text = (Path(__file__).parents[2] / "skill" / "tool-descriptions.md").read_text("utf-8")
+    blocks = dict(re.findall(r"## (\w+)\n\n```text\n(.*?)\n```", text, re.DOTALL))
+    assert blocks == {
+        "find_sources": server.FIND_SOURCES,
+        "check_paper": server.CHECK_PAPER,
+        "search_topic": server.SEARCH_TOPIC,
+        "post_note": server.POST_NOTE,
+        "withdraw": server.WITHDRAW_NOTE,
+        "instructions": server.INSTRUCTIONS,
+    }
+
+
+async def test_every_description_has_english_and_chinese_keywords(http: MockHTTP) -> None:
+    # Some clients search tools by keyword before loading them.
+    from app.mcp.server import INSTRUCTIONS
+
+    async with arxiv_adapter(http) as arxiv, Client(build_mcp_server(arxiv)) as client:
+        tools = (await client.list_tools()).tools
+        assert client.instructions == INSTRUCTIONS
+    for tool in tools:
+        description = tool.description or ""
+        assert len(description) <= 600, tool.name
+        assert any(word in description for word in ("paper", "arXiv", "citation")), tool.name
+        assert any(word in description for word in ("论文", "文献", "引用", "复现")), tool.name
