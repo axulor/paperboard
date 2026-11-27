@@ -53,7 +53,9 @@
 |---|---|---|---|---|
 | 仓库根目录 | Docker Compose | `docker compose -f deploy/docker-compose.yml up -d --wait db` | — | — |
 | `api/` | `uv sync` | `uv run uvicorn app.main:app --reload`（http://127.0.0.1:8000，接口在 `/api`，连接器在 `/mcp`） | `uv run pytest`；带覆盖率（CI 要求不低于 90%）：`uv run pytest --cov`；访问真实接口的测试：`uv run pytest -m live` | `uv run ruff format .`、`uv run ruff check .`、`uv run pyright` |
-| `web/` | `pnpm install` | `pnpm dev`（http://localhost:3000） | — | `pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm build` |
+| `web/` | `pnpm install` | `pnpm dev`（http://localhost:3000，从 http://127.0.0.1:8000 的 api 取数据） | `pnpm build && pnpm test`（冒烟测试，自带假的 api） | `pnpm format`、`pnpm lint`、`pnpm typecheck`、`pnpm build` |
+
+改了 REST 接口或它返回的模型后，在 `api/` 运行 `uv run python -m app.openapi` 更新 `api/openapi.json`，再在 `web/` 运行 `pnpm gen:api` 更新网页用的类型 `web/src/lib/api/schema.ts`。CI 检查这两个文件和代码一致。网页的环境变量见 `web/.env.example`。
 
 在 `api/` 运行 `uv run alembic upgrade head` 应用迁移。更新模型后用 `uv run alembic revision --autogenerate -m "change description"` 生成迁移草稿，再检查升级和回退操作。
 
