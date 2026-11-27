@@ -13,6 +13,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  skill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Check the request set
+        run: python skill/scripts/check_requests.py
+      - name: Check the plugin package
+        run: python skill/scripts/check_package.py
+      - name: Unit tests of the eval runner
+        run: python -m unittest discover -s skill/tests -v
+
   api:
     runs-on: ubuntu-latest
     services:

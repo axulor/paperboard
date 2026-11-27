@@ -20,12 +20,14 @@ from run_evals import PREFIX, analyze_stream, command, run_case, score, verdict
 
 
 def init_event() -> dict:
+    """Shape of a real Claude Code 2.1.220 init: the HTTP connector is still connecting."""
     return {
         "type": "system",
         "subtype": "init",
-        "plugins": [{"name": "paperboard", "path": "/tmp/plugin"}],
-        "mcp_servers": [{"name": "plugin_paperboard_paperboard", "status": "connected"}],
-        "tools": ["Skill", *(PREFIX + n for n in ("search_topic", "find_sources", "check_paper"))],
+        "plugins": [{"name": "paperboard", "path": "/tmp/plugin", "source": "paperboard@inline"}],
+        "mcp_servers": [{"name": "plugin:paperboard:paperboard", "status": "pending"}],
+        "tools": ["Read", "Skill"],
+        "skills": ["deep-research", "paperboard:paperboard"],
     }
 
 
@@ -84,13 +86,12 @@ class StreamTests(unittest.TestCase):
         self.assertFalse(analyze_stream(stream(init_event(), END), "skill")["triggered"])
         self.assertFalse(analyze_stream(stream(END), "skill")["valid"])
 
-    def test_pilot_does_not_guess_skill_field(self) -> None:
-        observed = analyze_stream(
-            stream(init_event(), use("Skill", {"skill": "paperboard"}), END), None
-        )
-        self.assertFalse(observed["valid"])
-        self.assertIsNone(observed["triggered"])
-        self.assertEqual(observed["skill_inputs"], [{"skill": "paperboard"}])
+    def test_connector_may_still_be_connecting(self) -> None:
+        for status in ("pending", "connected"):
+            init = init_event()
+            init["mcp_servers"][0]["status"] = status
+            with self.subTest(status=status):
+                self.assertTrue(analyze_stream(stream(init, END))["valid"])
 
     def test_wrong_field_is_invalid(self) -> None:
         observed = analyze_stream(
@@ -98,11 +99,14 @@ class StreamTests(unittest.TestCase):
         )
         self.assertFalse(observed["valid"])
 
-    def test_other_skill_is_contamination(self) -> None:
+    def test_other_skill_counts_as_not_triggered(self) -> None:
         observed = analyze_stream(
-            stream(init_event(), use("Skill", {"skill": "unrelated"}), END), "skill"
+            stream(init_event(), use("Skill", {"skill": "deep-research"}), END), "skill"
         )
-        self.assertFalse(observed["valid"])
+        self.assertTrue(observed["valid"])
+        self.assertFalse(observed["triggered"])
+        self.assertEqual(observed["other_skills"], ["deep-research"])
+        self.assertIn("paperboard:paperboard", observed["available_skills"])
 
     def test_bad_startup_is_not_counted_as_skill_failure(self) -> None:
         for kind in ("connection", "plugin", "tools", "extra_plugin", "extra_mcp"):
@@ -112,7 +116,7 @@ class StreamTests(unittest.TestCase):
             elif kind == "plugin":
                 init["plugins"] = []
             elif kind == "tools":
-                init["tools"].remove(PREFIX + "search_topic")
+                init["tools"].remove("Skill")
             elif kind == "extra_plugin":
                 init["plugins"].append({"name": "other"})
             else:

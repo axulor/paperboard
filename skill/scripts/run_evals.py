@@ -18,11 +18,18 @@ from typing import Any
 from check_requests import SKILL_ROOT, load_requests
 
 PREFIX = "mcp__plugin_paperboard_paperboard__"
-READ_TOOLS = {"search_topic", "find_sources", "check_paper"}
+MCP_NAME = "plugin:paperboard:paperboard"
+SKILL_NAMES = {"paperboard", "paperboard:paperboard"}
+# The HTTP connector is usually still connecting when init is emitted; its tools are not
+# listed there yet. Tool results later in the stream show whether it worked.
+MCP_STARTING = {"pending", "connected"}
 
 
-def analyze_stream(raw: str, field: str | None) -> dict[str, Any]:
-    """Treat missing/unknown init evidence as invalid, never as a routing failure."""
+def analyze_stream(raw: str, field: str = "skill") -> dict[str, Any]:
+    """Treat missing/unknown init evidence as invalid, never as a routing failure.
+
+    Calls to other skills count as not triggering PaperBoard: real users have them too.
+    """
     events: list[dict[str, Any]] = []
     for line in raw.splitlines():
         if not line.strip():
@@ -40,6 +47,8 @@ def analyze_stream(raw: str, field: str | None) -> dict[str, Any]:
         "triggered": None,
         "calls": [],
         "skill_inputs": [],
+        "other_skills": [],
+        "available_skills": [],
         "text": "",
         "cost_usd": None,
     }
@@ -51,16 +60,14 @@ def analyze_stream(raw: str, field: str | None) -> dict[str, Any]:
     if len(names) != 1 or names[0] not in {"paperboard", "paperboard@paperboard"}:
         result["reason"] = "expected only the paperboard plugin; inspect system/init"
         return result
-    matching = [
-        m for m in mcps if isinstance(m, dict) and m.get("name") == "plugin_paperboard_paperboard"
-    ]
-    if len(matching) != 1 or matching[0].get("status") != "connected" or len(mcps) != 1:
-        result["reason"] = "expected only a connected plugin_paperboard_paperboard MCP"
+    matching = [m for m in mcps if isinstance(m, dict) and m.get("name") == MCP_NAME]
+    if len(matching) != 1 or matching[0].get("status") not in MCP_STARTING or len(mcps) != 1:
+        result["reason"] = f"expected only the {MCP_NAME} MCP, pending or connected"
         return result
-    advertised = init.get("tools", [])
-    if "Skill" not in advertised or not all(PREFIX + t in advertised for t in READ_TOOLS):
-        result["reason"] = "Skill or first-stage read tools missing (check #9 and MCP startup)"
+    if "Skill" not in init.get("tools", []):
+        result["reason"] = "Skill tool missing from system/init"
         return result
+    result["available_skills"] = init.get("skills", [])
     if any(e.get("type") == "assistant" for e in events[: events.index(init)]):
         result["reason"] = "assistant output precedes system/init"
         return result
@@ -118,17 +125,12 @@ def analyze_stream(raw: str, field: str | None) -> dict[str, Any]:
     if ending.get("is_error") and ending.get("subtype") != "error_max_turns":
         result["reason"] = "CLI/model returned an error"
         return result
-    if result["skill_inputs"] and field is None:
-        result["reason"] = "pilot: confirm Skill input field from raw stream before scoring"
-        return result
     values = [x.get(field) if isinstance(x, dict) else None for x in result["skill_inputs"]]
     if any(not isinstance(v, str) for v in values):
         result["reason"] = "Skill input field missing or changed; inspect raw stream"
         return result
-    if any(v not in {"paperboard", "paperboard:paperboard"} for v in values):
-        result["reason"] = "unexpected skill; remove other skills before evaluation"
-        return result
-    result.update(valid=True, reason="", triggered=bool(values))
+    result["other_skills"] = [v for v in values if v not in SKILL_NAMES]
+    result.update(valid=True, reason="", triggered=any(v in SKILL_NAMES for v in values))
     return result
 
 
@@ -275,6 +277,8 @@ def report(records: list[dict[str, Any]], metadata: dict[str, Any], directory: P
         obs, scores = record["observed"], record["score"]
         counts = dict(Counter(c["name"] for c in obs["calls"]))
         details = str(counts) if obs["valid"] else obs["reason"]
+        if obs.get("other_skills"):
+            details += " 其他技能：" + ", ".join(obs["other_skills"])
         details = details.replace("|", "\\|").replace("\n", " ")
         lines.append(
             f"| {record['id']} | {record['category']} | {cell(obs['valid'])} | "
@@ -299,12 +303,15 @@ def main() -> int:
     parser.add_argument("--plugin", type=Path, default=SKILL_ROOT / "claude-code")
     parser.add_argument("--claude", default="claude")
     parser.add_argument(
-        "--pilot", action="store_true", help="Inspect one real stream before mapping Skill input"
+        "--pilot", action="store_true", help="Run only the first request to check the setup"
     )
     parser.add_argument(
-        "--skill-input-field", help="Field observed in the pilot's Skill input; do not guess"
+        "--skill-input-field",
+        default="skill",
+        help="Field naming the skill in Skill tool input (Claude Code 2.1.220: skill)",
     )
-    parser.add_argument("--max-turns", type=int, default=4)
+    # Skill is called in turn 1 and the first PaperBoard tool in turn 2.
+    parser.add_argument("--max-turns", type=int, default=2)
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument(
         "--output", type=Path, help="New empty output directory (raw traces stay local)"
@@ -312,8 +319,6 @@ def main() -> int:
     args = parser.parse_args()
     if args.max_turns < 1 or args.timeout < 1:
         parser.error("Turn and timeout limits must be positive")
-    if not args.pilot and not args.skill_input_field:
-        parser.error("Run --pilot first; inspect Skill tool input, then pass --skill-input-field")
     executable = shutil.which(args.claude)
     if not executable:
         parser.exit(2, "BLOCKED: Claude Code CLI not found; no model evaluations were run.\n")
@@ -354,7 +359,7 @@ def main() -> int:
             break
     print(f"Report: {directory / 'report.md'}")
     if args.pilot:
-        return 0 if records and records[0]["observed"].get("skill_inputs") else 2
+        return 0 if records and records[0]["observed"]["valid"] else 2
     return 0 if verdict(records).startswith("触发指标达标") else 1
 
 
