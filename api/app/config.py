@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     """Host names the server is reached at in staging/production, e.g. ["paperboard.example"].
     Localhost is always allowed. Set as JSON: PAPERBOARD_PUBLIC_HOSTS='["paperboard.example"]'."""
 
+    site_url: str | None = None
+    """Address of the web pages, e.g. https://paperboard.example. When set, post_note returns
+    the link to the new note."""
+
     database_url: SecretStr | None = None
     """PostgreSQL connection URL using the postgresql+psycopg dialect."""
 

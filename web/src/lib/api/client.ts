@@ -6,6 +6,9 @@ import type { components } from "./schema";
 export type PaperReport = components["schemas"]["PaperReport"];
 export type PaperFacts = components["schemas"]["PaperFacts"];
 export type CodeLink = components["schemas"]["CodeLink"];
+export type PaperNotes = components["schemas"]["PaperNotes"];
+export type NoteSummary = components["schemas"]["NoteSummary"];
+export type StoredQuote = components["schemas"]["StoredQuote"];
 
 /** The API answered with an error, or could not be reached. */
 export class ApiError extends Error {}
@@ -25,4 +28,21 @@ export async function getPaper(id: string): Promise<PaperReport | null> {
   if (!response.ok)
     throw new ApiError(`PaperBoard API answered ${response.status} for ${id}`);
   return (await response.json()) as PaperReport;
+}
+
+/** Public notes on an arXiv paper, newest first. `id` must be a valid arXiv id. */
+export async function getNotes(id: string): Promise<PaperNotes> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl()}/api/papers/arxiv/${id}/notes`, {
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (error) {
+    throw new ApiError(`PaperBoard API unreachable: ${String(error)}`);
+  }
+  if (!response.ok)
+    throw new ApiError(
+      `PaperBoard API answered ${response.status} for notes on ${id}`,
+    );
+  return (await response.json()) as PaperNotes;
 }

@@ -396,3 +396,35 @@ async def test_token_verifier_names_the_account(sessions: Sessions) -> None:
     token = await verifier.verify_token(issued.token)
     assert token is not None and token.subject == str(issued.account_id)
     assert await verifier.verify_token("pb_unknown") is None
+
+
+# --- REST ----------------------------------------------------------------------------------
+
+
+async def test_rest_lists_a_papers_public_notes(
+    http: MockHTTP, paper_requests: Requests, sessions: Sessions, account: int
+) -> None:
+    from fastapi import FastAPI
+
+    from app.rest.papers import build_router
+
+    key_point = await post(http, sessions, account)
+    question = await post(http, sessions, account, kind="question", quotes=[])
+    await withdraw_note(sessions, account, question)
+    async with arxiv_adapter(http) as arxiv:
+        app = FastAPI()
+        app.include_router(build_router(arxiv, sessions=sessions), prefix="/api")
+        transport = httpx2.ASGITransport(app=app)
+        async with httpx2.AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.get(f"/api/papers/arxiv/{PAPER_ID}v1/notes")
+            assert response.status_code == 200
+            body = response.json()
+            assert body["total"] == 1 and body["counts"] == {"key_point": 1}
+            [note] = body["latest"]
+            assert note["id"] == key_point and note["quotes"][0]["status"] == "found"
+            assert (await client.get("/api/papers/arxiv/hep-th/9901001/notes")).json() == {
+                "counts": {},
+                "latest": [],
+                "total": 0,
+            }
+            assert (await client.get("/api/papers/arxiv/nonsense/notes")).status_code == 404

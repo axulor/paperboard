@@ -45,6 +45,7 @@ services:
     environment:
       <<: *database-url
       PAPERBOARD_PUBLIC_HOSTS: ${PAPERBOARD_PUBLIC_HOSTS:-[]}
+      PAPERBOARD_SITE_URL: ${PAPERBOARD_SITE_URL:-http://localhost:8080}
     depends_on:
       migrate:
         condition: service_completed_successfully

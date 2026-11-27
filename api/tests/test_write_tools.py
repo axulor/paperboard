@@ -217,3 +217,17 @@ def test_descriptions_match_the_skill_text() -> None:
     assert blocks["search_topic"] == SEARCH_TOPIC
     assert blocks["post_note"] == POST_NOTE
     assert blocks["withdraw"] == WITHDRAW_NOTE
+
+
+async def test_posting_returns_the_notes_page_when_the_site_is_known(
+    http: MockHTTP, paper_requests: Requests, sessions: Sessions, account: int
+) -> None:
+    login = Login(verifier=OneTokenVerifier(account), policy=POLICY, site_url="https://pb.example/")
+    with logged_in(account):
+        async with (
+            arxiv_adapter(http) as arxiv,
+            Client(build_mcp_server(arxiv, sessions=sessions, login=login)) as client,
+        ):
+            _, posted = await call(client, "post_note", note())
+    note_id = posted.split("withdraw with note_id=")[1].rstrip(".")
+    assert f"Page: https://pb.example/abs/{PAPER_ID}#note-{note_id}" in posted

@@ -28,13 +28,24 @@ const papers = new Map([
   ["2402.00001", withdrawn],
 ]);
 
+const notes = new Map([["2401.04088", fixture("notes-2401.04088.json")]]);
+const NO_NOTES = { counts: {}, latest: [], total: 0 };
+
 const PREFIX = "/api/papers/arxiv/";
+const NOTES = "/notes";
 
 const server = createServer((request, response) => {
   const path = new URL(request.url, "http://localhost").pathname;
   if (path === "/api/health") return send(response, 200, { status: "ok" });
   if (!path.startsWith(PREFIX))
     return send(response, 404, { detail: "no route" });
+  if (path.endsWith(NOTES)) {
+    const id = path.slice(PREFIX.length, -NOTES.length).replace(/v\d+$/, "");
+    // The withdrawn paper doubles as the case where notes cannot be read.
+    if (id === "2402.00001")
+      return send(response, 503, { detail: "database unavailable" });
+    return send(response, 200, notes.get(id) ?? NO_NOTES);
+  }
   const id = path.slice(PREFIX.length).replace(/v\d+$/, "");
   if (id === "2401.00503")
     return send(response, 503, { detail: "arXiv unavailable" });

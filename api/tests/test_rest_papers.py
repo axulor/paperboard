@@ -89,3 +89,9 @@ def test_arxiv_unavailable(http: MockHTTP, client: TestClient) -> None:
     response = client.get("/api/papers/arxiv/2401.04088")
 
     assert response.status_code == 503
+
+
+def test_notes_without_a_database_are_empty(client: TestClient) -> None:
+    response = client.get("/api/papers/arxiv/2401.04088/notes")
+    assert response.status_code == 200
+    assert response.json() == {"counts": {}, "latest": [], "total": 0}

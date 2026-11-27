@@ -42,6 +42,7 @@ def create_app(
                 notes_per_hour=settings.notes_per_hour,
                 blocked_words=WordList.load(settings.blocked_words_file),
             ),
+            site_url=settings.site_url,
         )
     servers = [build_mcp_server(arxiv, sessions=sessions)]
     connector = build_mcp_app(servers[0], settings.public_hosts)

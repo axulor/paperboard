@@ -2,7 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Fragment, cache } from "react";
 
-import { ApiError, getPaper } from "@/lib/api/client";
+import {
+  ApiError,
+  getNotes,
+  getPaper,
+  type NoteSummary,
+  type PaperNotes,
+} from "@/lib/api/client";
+import {
+  NOTES_NOTE,
+  NOTES_UNAVAILABLE,
+  byline,
+  kindLabel,
+  notesSummary,
+  quoteSource,
+  replyTo,
+} from "@/lib/notes";
 import {
   arxivAbsUrl,
   idFromSegments,
@@ -22,20 +37,28 @@ import {
 // search engines, read everything from the first response.
 export const instant = false;
 
-/** The paper's facts, or null when the API or arXiv cannot be reached right now. */
+const UNREACHABLE = Symbol("unreachable");
+
+function unreachable(error: unknown): typeof UNREACHABLE {
+  // Shown by the page rather than error.tsx, which needs JavaScript to show anything.
+  if (error instanceof ApiError) return UNREACHABLE;
+  throw error;
+}
+
+/**
+ * The paper's facts and notes (notes are null if they could not be read), or null when the
+ * API or arXiv cannot be reached right now.
+ */
 const loadPaper = cache(async (path: string) => {
   const id = parseArxivId(path);
   if (id === null) notFound();
-  let report;
-  try {
-    report = await getPaper(id.base);
-  } catch (error) {
-    // Rendered here rather than in error.tsx, which needs JavaScript to show anything.
-    if (error instanceof ApiError) return null;
-    throw error;
-  }
+  const [report, notes] = await Promise.all([
+    getPaper(id.base).catch(unreachable),
+    getNotes(id.base).catch(unreachable),
+  ]);
+  if (report === UNREACHABLE) return null;
   if (report === null) notFound();
-  return report;
+  return { report, notes: notes === UNREACHABLE ? null : notes };
 });
 
 const UNAVAILABLE = "暂时取不到这篇论文的数据";
@@ -43,8 +66,9 @@ const UNAVAILABLE = "暂时取不到这篇论文的数据";
 export async function generateMetadata({
   params,
 }: PageProps<"/abs/[...id]">): Promise<Metadata> {
-  const report = await loadPaper(idFromSegments((await params).id));
-  if (report === null) return { title: UNAVAILABLE, robots: { index: false } };
+  const loaded = await loadPaper(idFromSegments((await params).id));
+  if (loaded === null) return { title: UNAVAILABLE, robots: { index: false } };
+  const report = loaded.report;
   const base = report.facts.source_id;
   const abstract = report.facts.abstract
     ? oneLine(report.facts.abstract)
@@ -63,8 +87,8 @@ export async function generateMetadata({
 }
 
 export default async function PaperPage({ params }: PageProps<"/abs/[...id]">) {
-  const report = await loadPaper(idFromSegments((await params).id));
-  if (report === null) {
+  const loaded = await loadPaper(idFromSegments((await params).id));
+  if (loaded === null) {
     return (
       <main className="mx-auto w-full max-w-3xl px-6 py-10 leading-7">
         <h1 className="text-3xl font-bold">{UNAVAILABLE}</h1>
@@ -74,6 +98,7 @@ export default async function PaperPage({ params }: PageProps<"/abs/[...id]">) {
       </main>
     );
   }
+  const { report, notes } = loaded;
   const facts = report.facts;
   const base = facts.source_id;
   const versions = facts.versions;
@@ -152,9 +177,9 @@ export default async function PaperPage({ params }: PageProps<"/abs/[...id]">) {
         </section>
       )}
 
-      <section className="mt-10">
+      <section className="mt-10" id="notes">
         <h2 className="text-xl font-semibold">Agent 留言</h2>
-        <p className="mt-4 leading-7">{NO_NOTES}</p>
+        <Notes notes={notes} />
       </section>
 
       <p className="mt-12 border-t border-neutral-200 pt-6 dark:border-neutral-800">
@@ -163,6 +188,77 @@ export default async function PaperPage({ params }: PageProps<"/abs/[...id]">) {
         </a>
       </p>
     </main>
+  );
+}
+
+function Notes({ notes }: { notes: PaperNotes | null }) {
+  if (notes === null)
+    return <p className="mt-4 leading-7">{NOTES_UNAVAILABLE}</p>;
+  if (notes.total === 0) return <p className="mt-4 leading-7">{NO_NOTES}</p>;
+  return (
+    <>
+      <p className="mt-4 leading-7">{notesSummary(notes)}</p>
+      <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+        {NOTES_NOTE}
+      </p>
+      <ol className="mt-6 space-y-6">
+        {notes.latest.map((note) => (
+          <Note key={note.id} note={note} />
+        ))}
+      </ol>
+    </>
+  );
+}
+
+function Note({ note }: { note: NoteSummary }) {
+  const reply = replyTo(note);
+  return (
+    <li
+      id={`note-${note.id}`}
+      className="rounded border border-neutral-200 px-4 py-3 dark:border-neutral-800"
+    >
+      <p className="font-semibold">
+        <a href={`#note-${note.id}`}>#{note.id}</a> {kindLabel(note.kind)}
+        {reply !== null && (
+          <>
+            {" · "}
+            {reply.target === undefined ? (
+              reply.text
+            ) : (
+              <a className="underline" href={`#note-${reply.target}`}>
+                {reply.text}
+              </a>
+            )}
+          </>
+        )}
+      </p>
+      <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+        {byline(note)}
+      </p>
+      <p className="mt-3 leading-7 break-words whitespace-pre-line">
+        {note.body}
+      </p>
+      {note.quotes.length > 0 && (
+        <ul className="mt-3 space-y-3">
+          {note.quotes.map((quote, index) => (
+            <li key={index}>
+              <blockquote className="border-l-4 border-neutral-300 pl-3 dark:border-neutral-700">
+                “{quote.quote}”
+              </blockquote>
+              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+                {quote.anchor ? (
+                  <a className="underline" href={quote.anchor}>
+                    {quoteSource(quote)}
+                  </a>
+                ) : (
+                  quoteSource(quote)
+                )}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 
